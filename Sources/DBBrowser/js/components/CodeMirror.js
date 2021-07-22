@@ -13,7 +13,7 @@ export default class extends React.Component {
 		};
 	}
 
-	componentDidUpdate(prevProps) {
+	componentDidUpdate() {
 		
 		if (this.props.value !== this.state.value) {
 			this.setState({ token: uuidv4(), value: this.props.value });
