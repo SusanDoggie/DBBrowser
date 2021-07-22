@@ -244,9 +244,11 @@ class Home extends React.Component {
 
       return <ScrollView>
         <View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: 'white', margin: 8 }}>DATABASE</Text>
-            <MaterialCommunityIcons name='reload' size={18} color='white' />
+          <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ color: 'white' }}>DATABASE</Text>
+            <TouchableWithoutFeedback onPress={() => this.loadData()}>
+              <MaterialCommunityIcons name='reload' size={18} color='white' />
+            </TouchableWithoutFeedback>
           </View>
           {this.state.databases?.map(name => <TouchableWithoutFeedback onPress={() => this.onPressDatabase(name)}>
             <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
@@ -255,9 +257,11 @@ class Home extends React.Component {
           </TouchableWithoutFeedback>)}
         </View>
         <View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: 'white', margin: 8 }}>TABLES</Text>
-            <MaterialCommunityIcons name='reload' size={18} color='white' />
+          <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ color: 'white' }}>TABLES</Text>
+            <TouchableWithoutFeedback onPress={() => this.loadData()}>
+              <MaterialCommunityIcons name='reload' size={18} color='white' />
+            </TouchableWithoutFeedback>
           </View>
           {this.state.tables?.map(name => <TouchableWithoutFeedback onPress={() => this.onPressTable(name)}>
             <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
