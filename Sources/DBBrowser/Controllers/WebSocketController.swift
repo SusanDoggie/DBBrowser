@@ -255,7 +255,8 @@ extension WebSocketController {
                     return
                 }
                 
-                guard let command = message["command"].documentValue else {
+                guard let _command = message["command"].binaryValue,
+                      let command = try? BSONDocument(fromBSON: _command.data) else {
                     self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
                     return
                 }

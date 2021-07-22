@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { EJSON } from 'bson';
+import { EJSON, serialize, Binary } from 'bson';
 import { EventEmitter } from 'events';
 
 function createSocket() {
@@ -68,7 +68,7 @@ function createDatabase() {
 		}
 		
 		runMongoCommand(command) {
-			return socket_run({ action: 'runCommand', command: command });
+			return socket_run({ action: 'runCommand', command: new Binary(serialize(command)) });
 		}
 	}
 	
