@@ -4,9 +4,9 @@ import { View, TextInput, Text, ScrollView, StyleSheet, TouchableWithoutFeedback
 import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommunityIcons';
 import { withRouter } from 'react-router';
 import { EJSON } from 'bson';
-import CodeMirror from 'react-codemirror';
 import Url from 'url';
 
+import CodeMirror from '../../components/CodeMirror';
 import Button from '../../components/Button';
 import RoundButton from '../../components/RoundButton';
 import ResultTable from './ResultTable';
@@ -78,8 +78,6 @@ class Home extends React.Component {
     const databases = await this.props.database.databases();
     const tables = await this.props.database.tables();
 
-    console.log({ databases, tables });
-
     this.setState({ databases, tables });
   }
 
@@ -135,11 +133,7 @@ class Home extends React.Component {
     }
 
     return <View style={{ flex: 1 }}>
-      <View style={{ flex: 1 }}>
-        <ResultTable 
-          style={{ flex: 1 }} 
-          data={this.state.result} />
-      </View>
+      <ResultTable style={{ flex: 1 }} data={this.state.result} />
       <View style={{ 
         padding: 4,
         flexDirection: 'row', 
@@ -161,12 +155,12 @@ class Home extends React.Component {
       </View>
       <View style={{ height: 300 }}>
       <CodeMirror
-      value={this.state.command}
-      onChange={(command) => this.setState({ command })}
-      options={{ 
-        mode: mode,
-        lineNumbers: true,
-      }} />
+        value={this.state.command}
+        onChange={(command) => this.setState({ command })}
+        options={{ 
+          mode: mode,
+          lineNumbers: true,
+        }} />
       </View>
     </View>;
   }
@@ -283,7 +277,7 @@ class Home extends React.Component {
       return <ScrollView>
         <View>
           <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: 'white', fontFamily: 'monospace', fontWeight: '600' }}>DATABASE</Text>
+            <Text style={{ color: 'white', fontFamily: 'monospace', fontWeight: '600' }}>DATABASES</Text>
             <TouchableWithoutFeedback onPress={() => this.loadData()}>
               <MaterialCommunityIcons name='reload' size={18} color='white' />
             </TouchableWithoutFeedback>

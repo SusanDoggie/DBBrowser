@@ -71,7 +71,6 @@ export default class ResultTable extends React.PureComponent {
     super(props);
 
     this.state = {
-      token: uuidv4(),
       style: 'table',
     };
   }
