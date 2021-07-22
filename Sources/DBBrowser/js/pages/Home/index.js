@@ -87,6 +87,10 @@ class Home extends React.Component {
 
     try {
 
+      if (_.isEmpty(this.state.command.trim())) {
+        return;
+      }
+
       const database = this.props.database;
 
       let result;
@@ -100,7 +104,7 @@ class Home extends React.Component {
         result = await database.runMongoCommand(command);
 
       } else {
-
+        
         result = await database.runSQLCommand(this.state.command);
       }
 
@@ -131,8 +135,29 @@ class Home extends React.Component {
     }
 
     return <View style={{ flex: 1 }}>
-      <View style={{ flexDirection: 'row' }}>
-        <Button title='Run' onPress={() => this.runCommand()} />
+      <View style={{ flex: 1 }}>
+        <ResultTable 
+          style={{ flex: 1 }} 
+          data={this.state.result} />
+      </View>
+      <View style={{ 
+        padding: 4,
+        flexDirection: 'row', 
+        background: '#2F4F4F',
+      }}>
+        <Button 
+          icon='Ionicons' 
+          iconStyle={{ 
+            name: 'play',
+            size: 18,
+          }} 
+          style={{
+            padding: 0,
+            borderRadius: null,
+            backgroundColor: null,
+            marginHorizontal: 4,
+          }}
+          onPress={() => this.runCommand()} />
       </View>
       <View style={{ height: 300 }}>
       <CodeMirror
@@ -143,9 +168,6 @@ class Home extends React.Component {
         lineNumbers: true,
       }} />
       </View>
-      {!_.isEmpty(this.state.result) && <ResultTable 
-        style={{ flex: 1 }} 
-        data={this.state.result} />}
     </View>;
   }
 
@@ -162,6 +184,22 @@ class Home extends React.Component {
 
   async onPressTable(name) {
 
+    const url = Url.parse(this.state.connectionStr);
+
+    switch (url.protocol) {
+      case 'mysql:':
+      case 'postgres:':
+        
+        this.setState({ command: `SELECT * FROM ${name} LIMIT 100` }, () => this.runCommand());
+        break;
+
+      case 'mongodb:': 
+
+      
+        break;
+
+      default: break;
+    }
   }
 
   renderLoginPanel() {
@@ -245,29 +283,57 @@ class Home extends React.Component {
       return <ScrollView>
         <View>
           <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: 'white' }}>DATABASE</Text>
+            <Text style={{ color: 'white', fontFamily: 'monospace', fontWeight: '600' }}>DATABASE</Text>
             <TouchableWithoutFeedback onPress={() => this.loadData()}>
               <MaterialCommunityIcons name='reload' size={18} color='white' />
             </TouchableWithoutFeedback>
           </View>
-          {this.state.databases?.map(name => <TouchableWithoutFeedback onPress={() => this.onPressDatabase(name)}>
-            <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
-              <Text style={{ color: 'white' }}>{name}</Text>
-            </View>
-          </TouchableWithoutFeedback>)}
+          {this.state.databases?.map(name => <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
+            <Button 
+              title={name} 
+              style={{
+                padding: 0,
+                borderRadius: null,
+                backgroundColor: null,
+                alignSelf: 'flex-start',
+              }}
+              titleStyle={{
+                color: 'white',
+                opacity: 0.4,
+              }}
+              titleHoverStyle={{
+                color: 'white',
+                opacity: 1,
+              }}
+              onPress={() => this.onPressDatabase(name)} />
+            </View>)}
         </View>
         <View>
           <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: 'white' }}>TABLES</Text>
+            <Text style={{ color: 'white', fontFamily: 'monospace', fontWeight: '600' }}>TABLES</Text>
             <TouchableWithoutFeedback onPress={() => this.loadData()}>
               <MaterialCommunityIcons name='reload' size={18} color='white' />
             </TouchableWithoutFeedback>
           </View>
-          {this.state.tables?.map(name => <TouchableWithoutFeedback onPress={() => this.onPressTable(name)}>
-            <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
-              <Text style={{ color: 'white' }}>{name}</Text>
-            </View>
-          </TouchableWithoutFeedback>)}
+          {this.state.tables?.map(name => <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
+            <Button 
+              title={name} 
+              style={{
+                padding: 0,
+                borderRadius: null,
+                backgroundColor: null,
+                alignSelf: 'flex-start',
+              }}
+              titleStyle={{
+                color: 'white',
+                opacity: 0.4,
+              }}
+              titleHoverStyle={{
+                color: 'white',
+                opacity: 1,
+              }}
+              onPress={() => this.onPressTable(name)} />
+            </View>)}
         </View>
       </ScrollView>;
     }
@@ -284,7 +350,7 @@ class Home extends React.Component {
       alignItems: 'stretch',
       background: 'Snow',
     }}>
-      <View style={{ width: 240, background: 'DarkSlateGray' }}>{this.renderSideMenu()}</View>
+      <View style={{ width: 240, background: '#2F4F4F' }}>{this.renderSideMenu()}</View>
       <View style={{ flex: 1 }}>{this.state.isConnected ? this.renderDashboard() : this.renderLoginPanel()}</View>
     </View>;
   }

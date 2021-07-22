@@ -110,9 +110,37 @@ export default class ResultTable extends React.PureComponent {
     } = this.props;
     
     return <View {...props}>
-    <View style={{ flexDirection: 'row' }}>
-      {_.isArray(this.props.data) && <Button title='table' onPress={() => this.setState({ style: 'table' })} />}
-      <Button title='raw' onPress={() => this.setState({ style: 'raw' })} />
+    <View style={{ 
+      padding: 4,
+      flexDirection: 'row', 
+      background: '#2F4F4F',
+    }}>
+      {_.isArray(this.props.data) && <Button 
+        icon='FontAwesome' 
+        iconStyle={{ 
+          name: 'table',
+          size: 18,
+        }} 
+        style={{
+          padding: 0,
+          borderRadius: null,
+          backgroundColor: null,
+          marginHorizontal: 4,
+        }}
+        onPress={() => this.setState({ style: 'table' })} />}
+      <Button
+        icon='MaterialCommunityIcons' 
+        iconStyle={{ 
+          name: 'code-json',
+          size: 18,
+        }} 
+        style={{
+          padding: 0,
+          borderRadius: null,
+          backgroundColor: null,
+          marginHorizontal: 4,
+        }}
+        onPress={() => this.setState({ style: 'raw' })} />
     </View>
     {this.renderBody()}
     </View>;
