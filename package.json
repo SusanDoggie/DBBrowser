@@ -40,6 +40,7 @@
     "react-native-event-listeners": "^1.0.7",
     "react-native-reanimated": "^2.0.0",
     "react-native-safe-area-context": "^3.1.9",
+    "react-native-vector-icons": "^8.1.0",
     "react-native-web": "^0.15.0",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",

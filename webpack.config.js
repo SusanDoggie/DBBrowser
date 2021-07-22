@@ -58,6 +58,18 @@ module.exports = (env, argv) => {
 		}
 	};
 	
+	const fontLoaderConfiguration = {
+		test: /\.ttf$/i,
+		use: {
+			loader: 'file-loader',
+			options: {
+				name: '[name].[contenthash].[ext]',
+				publicPath: '/fonts',
+				outputPath: 'fonts',
+			}
+		}
+	};
+	
 	const webpackConfiguration = {
 		mode: IS_PRODUCTION ? 'production' : 'development',
 		devtool: IS_PRODUCTION ? false : 'cheap-module-source-map',
@@ -87,6 +99,7 @@ module.exports = (env, argv) => {
 			babelLoaderConfiguration,
 			cssLoaderConfiguration,
 			imageLoaderConfiguration,
+			fontLoaderConfiguration,
 		  ]
 		},
 		resolve: {

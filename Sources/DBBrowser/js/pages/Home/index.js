@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import { View, TextInput, Text, ScrollView, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommunityIcons';
 import { withRouter } from 'react-router';
 import { EJSON } from 'bson';
 import CodeMirror from 'react-codemirror';
@@ -243,7 +244,10 @@ class Home extends React.Component {
 
       return <ScrollView>
         <View>
-          <Text style={{ color: 'white', margin: 8 }}>DATABASE</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ color: 'white', margin: 8 }}>DATABASE</Text>
+            <MaterialCommunityIcons name='reload' size={18} color='white' />
+          </View>
           {this.state.databases?.map(name => <TouchableWithoutFeedback onPress={() => this.onPressDatabase(name)}>
             <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
               <Text style={{ color: 'white' }}>{name}</Text>
@@ -251,7 +255,10 @@ class Home extends React.Component {
           </TouchableWithoutFeedback>)}
         </View>
         <View>
-          <Text style={{ color: 'white', margin: 8 }}>TABLES</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ color: 'white', margin: 8 }}>TABLES</Text>
+            <MaterialCommunityIcons name='reload' size={18} color='white' />
+          </View>
           {this.state.tables?.map(name => <TouchableWithoutFeedback onPress={() => this.onPressTable(name)}>
             <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
               <Text style={{ color: 'white' }}>{name}</Text>
