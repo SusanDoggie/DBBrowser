@@ -31,8 +31,6 @@
 
 @_exported import DBMySQL
 
-@_exported import DBSQLite
-
 @_exported import DBVapor
 
 @_exported import SwiftJS
