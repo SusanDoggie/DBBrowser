@@ -78,14 +78,19 @@ class Home extends React.Component {
     const databases = await this.props.database.databases();
     const tables = await this.props.database.tables();
 
+    databases.sort();
+    tables.sort();
+
     this.setState({ databases, tables });
   }
 
-  async runCommand() {
+  async runCommand(command) {
 
     try {
 
-      if (_.isEmpty(this.state.command.trim())) {
+      const _command = command ?? this.state.command;
+
+      if (_.isEmpty(_command.trim())) {
         return;
       }
 
@@ -97,16 +102,16 @@ class Home extends React.Component {
 
       if (url.protocol == 'mongodb:') {
         
-        const command = EJSON.parse(this.state.command);
+        const command = EJSON.parse(_command);
 
         result = await database.runMongoCommand(command);
 
       } else {
         
-        result = await database.runSQLCommand(this.state.command);
+        result = await database.runSQLCommand(_command);
       }
 
-      this.setState({ result });
+      this.setState({ result, command: _command });
       
     } catch (e) {
       console.log(e);
@@ -184,12 +189,12 @@ class Home extends React.Component {
       case 'mysql:':
       case 'postgres:':
         
-        this.setState({ command: `SELECT * FROM ${name} LIMIT 100` }, () => this.runCommand());
+        await this.runCommand(`SELECT * FROM ${name} LIMIT 100`);
         break;
 
       case 'mongodb:': 
 
-      
+        await this.runCommand(EJSON.stringify({ find: name, limit: 100 }));
         break;
 
       default: break;
