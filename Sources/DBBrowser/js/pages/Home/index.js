@@ -102,7 +102,7 @@ class Home extends React.Component {
 
       if (url.protocol == 'mongodb:') {
         
-        const command = EJSON.parse(_command);
+        const command = EJSON.parse(_command, { relaxed: false });
 
         result = await database.runMongoCommand(command);
 
