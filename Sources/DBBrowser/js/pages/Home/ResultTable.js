@@ -88,16 +88,12 @@ export default class ResultTable extends React.PureComponent {
         const columns = this.props.data.reduce((result, x) => _.uniq(result.concat(Object.keys(x))), []);
         const grid = this.props.data.map(x => columns.map(c => { return { value: x[c] } }));
 
-        return <ScrollView style={{ flex: 1 }}>
-          <DataSheet
+        return <DataSheet
           data={grid}
-          columns={columns} />
-        </ScrollView>;
+          columns={columns} />;
 
       case 'raw':
-        return <ScrollView style={{ flex: 1 }}>
-        <JsonCode value={this.props.data} space={4} />
-        </ScrollView>
+        return <JsonCode value={this.props.data} space={4} />;
     }
   }
 
@@ -141,7 +137,9 @@ export default class ResultTable extends React.PureComponent {
         }}
         onPress={() => this.setState({ style: 'raw' })} />
     </View>
-    {this.renderBody()}
+    <ScrollView style={{ flex: 1 }}>
+      {this.renderBody()}
+    </ScrollView>
     </View>;
   }
 }
