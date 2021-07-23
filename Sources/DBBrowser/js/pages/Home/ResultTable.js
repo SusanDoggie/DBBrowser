@@ -37,7 +37,7 @@ class DataSheet extends React.PureComponent {
       data={this.props.data}
       sheetRenderer={props => <table className={props.className}>
             <thead style={{
-              backgroundColor: 'white',
+              backgroundColor: 'snow',
               position: 'sticky',
               top: 0,
             }}>
@@ -55,7 +55,7 @@ class DataSheet extends React.PureComponent {
             </tbody>
         </table>}
       rowRenderer={props => (
-        <tr>
+        <tr style={{ backgroundColor: props.row % 2 == 0 ? 'white' : 'snow' }}>
             <td><Text>{props.row+1}</Text></td>
             {props.children}
         </tr>
@@ -78,9 +78,7 @@ export default class ResultTable extends React.PureComponent {
   renderBody() {
     
     if (!_.isArray(this.props.data)) {
-      return <ScrollView style={{ flex: 1 }}>
-        <JsonCode value={this.props.data} space={4} />
-      </ScrollView>;
+      return <JsonCode value={this.props.data} space={4} />;
     }
 
     switch (this.state.style) {
@@ -90,18 +88,10 @@ export default class ResultTable extends React.PureComponent {
         const columns = this.props.data.reduce((result, x) => _.uniq(result.concat(Object.keys(x))), []);
         const grid = this.props.data.map(x => columns.map(c => { return { value: x[c] } }));
 
-        return <ScrollView style={{ flex: 1 }}>
-          <ScrollView horizontal style={{ flex: 1 }}>
-            <DataSheet
-              data={grid}
-              columns={columns} />
-          </ScrollView>
-        </ScrollView>;
+        return <DataSheet data={grid} columns={columns} />;
 
       case 'raw':
-        return <ScrollView style={{ flex: 1 }}>
-          <JsonCode value={this.props.data} space={4} />
-        </ScrollView>;
+        return <JsonCode value={this.props.data} space={4} />;
     }
   }
 
@@ -145,7 +135,9 @@ export default class ResultTable extends React.PureComponent {
         }}
         onPress={() => this.setState({ style: 'raw' })} />
     </View>
-    {this.renderBody()}
+    <div style={{ flex: 1, overflow: 'scroll' }}>
+      {this.renderBody()}
+    </div>
     </View>;
   }
 }
