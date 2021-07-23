@@ -186,8 +186,8 @@ class DataSheet extends React.PureComponent {
         onMouseOver={props.onMouseOver}
         onDoubleClick={props.onDoubleClick}
         onContextMenu={props.onContextMenu}
-        style={{ position: 'relative', padding: 4 }}>
-        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, justifyContent: 'center' }}>
+        style={{ position: 'relative' }}>
+        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, padding: 4, justifyContent: 'center' }}>
           {props.children}
         </View>
       </td>}
