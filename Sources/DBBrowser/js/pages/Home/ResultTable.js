@@ -10,15 +10,35 @@ import JsonCode from './JsonCode';
 
 class ValueViewer extends React.PureComponent {
 
-  render() {
+  renderValue() {
     
     const { value } = this.props.value;
     
-    if (_.isString(value)) {
-      return <Text>{value}</Text>;
+    if (_.isNull(value)) {
+      return <Text style={{ color: 'lightgray', fontFamily: 'monospace' }}>(null)</Text>;
     }
     
-    return <Text>{EJSON.stringify(value)}</Text>;
+    if (_.isUndefined(value)) {
+      return <Text style={{ color: 'lightgray', fontFamily: 'monospace' }}>(undefined)</Text>;
+    }
+    
+    if (_.isBoolean(value)) {
+      return <Text style={{ color: 'darkblue', fontFamily: 'monospace' }}>{value}</Text>;
+    }
+    
+    if (_.isNumber(value)) {
+      return <Text style={{ color: 'mediumblue', fontFamily: 'monospace' }}>{value}</Text>;
+    }
+    
+    if (_.isString(value)) {
+      return <Text style={{ maxWidth: 96, color: 'darkred', fontFamily: 'monospace' }} ellipsizeMode='tail' numberOfLines={1}>{EJSON.stringify(value)}</Text>;
+    }
+    
+    return <Text style={{ maxWidth: 96, fontFamily: 'monospace' }} ellipsizeMode='tail' numberOfLines={1}>{EJSON.stringify(value)}</Text>;
+  }
+
+  render() {
+    return <View style={{ padding: 4 }}>{this.renderValue()}</View>;
   }
 }
 
@@ -37,13 +57,12 @@ class DataSheet extends React.PureComponent {
       data={this.props.data}
       sheetRenderer={props => <table className={props.className}>
             <thead style={{
-              backgroundColor: 'snow',
               position: 'sticky',
               top: 0,
             }}>
-                <tr>
+                <tr style={{ backgroundColor: 'snow' }}>
                   <th />
-                  {this.props.columns.map((col, i) => <th key={`${this.state.token}-col-${i}`}>
+                  {this.props.columns.map((col, i) => <th key={`${this.state.token}-col-${i}`} style={{ padding: 4 }}>
                     <Text>{col}</Text>
                     </th>)}
                 </tr>
@@ -56,7 +75,7 @@ class DataSheet extends React.PureComponent {
         </table>}
       rowRenderer={props => (
         <tr style={{ backgroundColor: props.row % 2 == 0 ? 'white' : 'snow' }}>
-            <td><Text>{props.row+1}</Text></td>
+            <td style={{ padding: 4 }}><Text>{props.row+1}</Text></td>
             {props.children}
         </tr>
       )}
