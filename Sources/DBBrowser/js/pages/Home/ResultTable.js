@@ -35,7 +35,7 @@ class ValueViewer extends React.PureComponent {
     }
 
     if (_.isString(value)) {
-      return <Text style={{ maxWidth: 96, color: 'darkred', fontFamily: 'monospace' }} ellipsizeMode='tail' numberOfLines={1}>{EJSON.stringify(value)}</Text>;
+      return <Text style={{ color: 'darkred', fontFamily: 'monospace' }} numberOfLines={1}>{EJSON.stringify(value)}</Text>;
     }
 
     switch (value._bsontype) {
@@ -91,12 +91,12 @@ class ValueViewer extends React.PureComponent {
 
         return <Text style={{ color: 'darkblue', fontFamily: 'monospace' }} numberOfLines={1}>{value.toHexString(true)}</Text>;
 
-      default: return <Text style={{ maxWidth: 96, fontFamily: 'monospace' }} ellipsizeMode='tail' numberOfLines={1}>{EJSON.stringify(value)}</Text>;
+      default: return <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{EJSON.stringify(value)}</Text>;
     }
   }
 
   render() {
-    return <View style={{ padding: 4 }}>{this.renderValue()}</View>;
+    return <View style={{ width: this.props.width ?? 96, padding: 4 }}>{this.renderValue()}</View>;
   }
 }
 
@@ -122,7 +122,7 @@ class DataSheet extends React.PureComponent {
                 <tr style={{ backgroundColor: 'snow' }}>
                   <th />
                   {this.props.columns.map((col, i) => <th key={`${this.state.token}-col-${i}`} style={{ padding: 4 }}>
-                    <Text style={{ fontFamily: 'monospace' }}>{col}</Text>
+                    <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{col}</Text>
                     </th>)}
                 </tr>
             </thead>
