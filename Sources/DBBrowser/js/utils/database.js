@@ -28,20 +28,21 @@ function createDatabase() {
 		eventEmitter.emit('WEBSOCKET_DID_CLOSED');
 	};
 	socket.onmessage = ({data}) => {
-		const result = EJSON.parse(data);
+		const _result = EJSON.parse(data);
+		const result = _.isNil(callbacks[_result.token]?.options) ? _result : EJSON.parse(data, callbacks[_result.token]?.options);
 		if (result['success']) {
-			callbacks[result.token]?.resolve(result['data']);
+			callbacks[_result.token]?.resolve(result['data']);
 		} else {
-			callbacks[result.token]?.reject(new Error(result['error']));
+			callbacks[_result.token]?.reject(new Error(result['error']));
 		}
-		delete callbacks[result.token];
+		delete callbacks[_result.token];
 	}
 
-	function socket_run(data) {
+	function socket_run(data, options) {
 		if (!isopen) throw new Error('socket not connected');
 		data.token = uuidv4();
 		socket.send(EJSON.stringify(data));
-		return new Promise((resolve, reject) => callbacks[data.token] = { resolve, reject });
+		return new Promise((resolve, reject) => callbacks[data.token] = { resolve, reject, options });
 	}
 	
 	class Database {
@@ -63,12 +64,12 @@ function createDatabase() {
 			return socket_run({ action: 'tables' });
 		}
 		
-		runSQLCommand(sql) {
-			return socket_run({ action: 'runCommand', command: sql });
+		runSQLCommand(sql, options) {
+			return socket_run({ action: 'runCommand', command: sql }, options);
 		}
 		
-		runMongoCommand(command) {
-			return socket_run({ action: 'runCommand', command: new Binary(serialize(command)) });
+		runMongoCommand(command, options) {
+			return socket_run({ action: 'runCommand', command: new Binary(serialize(command)) }, options);
 		}
 	}
 	

@@ -134,19 +134,19 @@ class Home extends React.Component {
         
         const command = EJSON.parse(_command, { relaxed: false });
 
-        result = await database.runMongoCommand(command);
+        result = await database.runMongoCommand(command, { relaxed: false });
 
         if (result.ok == 1 && !_.isEmpty(result.cursor)) {
 
-          let cursor_id = result.cursor.id
+          let cursor_id = result.cursor.id.valueOf();
           let _result = result.cursor.firstBatch ?? [];
           let collection = result.cursor.ns.split('.')[1];
 
           while(_.isInteger(cursor_id) && cursor_id > 0) {
 
-            let batch = await database.runMongoCommand({ getMore: { $numberLong: `${cursor_id}` }, collection });
+            let batch = await database.runMongoCommand({ getMore: { $numberLong: `${cursor_id}` }, collection }, { relaxed: false });
 
-            if (batch.ok != 1 || _.isEmpty(batch.cursor) || cursor_id != batch.cursor.id) {
+            if (batch.ok != 1 || _.isEmpty(batch.cursor) || cursor_id != batch.cursor.id.valueOf()) {
               break;
             }
 
@@ -158,7 +158,7 @@ class Home extends React.Component {
 
       } else {
         
-        result = await database.runSQLCommand(_command);
+        result = await database.runSQLCommand(_command, { relaxed: false });
       }
 
       this.setState({ result, command: _command });

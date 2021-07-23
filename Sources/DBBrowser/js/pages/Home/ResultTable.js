@@ -15,25 +15,29 @@ class ValueViewer extends React.PureComponent {
     const { value } = this.props.value;
     
     if (_.isNull(value)) {
-      return <Text style={{ color: 'lightgray', fontFamily: 'monospace' }}>(null)</Text>;
+      return <Text style={{ color: 'lightgray', fontFamily: 'monospace' }} numberOfLines={1}>(null)</Text>;
     }
     
     if (_.isUndefined(value)) {
-      return <Text style={{ color: 'lightgray', fontFamily: 'monospace' }}>(undefined)</Text>;
+      return <Text style={{ color: 'lightgray', fontFamily: 'monospace' }} numberOfLines={1}>(undefined)</Text>;
     }
     
     if (_.isBoolean(value)) {
-      return <Text style={{ color: 'darkblue', fontFamily: 'monospace' }}>{value}</Text>;
+      return <Text style={{ color: 'darkblue', fontFamily: 'monospace' }} numberOfLines={1}>{value}</Text>;
     }
     
     if (_.isNumber(value)) {
-      return <Text style={{ color: 'mediumblue', fontFamily: 'monospace' }}>{value}</Text>;
+      return <Text style={{ color: 'mediumblue', fontFamily: 'monospace' }} numberOfLines={1}>{value}</Text>;
     }
     
+    if (_.isDate(value)) {
+      return <Text style={{ color: 'darkslateblue', fontFamily: 'monospace' }} numberOfLines={1}>{value.toISOString()}</Text>;
+    }
+
     if (_.isString(value)) {
       return <Text style={{ maxWidth: 96, color: 'darkred', fontFamily: 'monospace' }} ellipsizeMode='tail' numberOfLines={1}>{EJSON.stringify(value)}</Text>;
     }
-    
+
     return <Text style={{ maxWidth: 96, fontFamily: 'monospace' }} ellipsizeMode='tail' numberOfLines={1}>{EJSON.stringify(value)}</Text>;
   }
 
@@ -60,7 +64,7 @@ class DataSheet extends React.PureComponent {
               position: 'sticky',
               top: 0,
             }}>
-                <tr style={{ backgroundColor: 'snow' }}>
+                <tr style={{ backgroundColor: 'snow', zIndex: 100 }}>
                   <th />
                   {this.props.columns.map((col, i) => <th key={`${this.state.token}-col-${i}`} style={{ padding: 4 }}>
                     <Text>{col}</Text>
