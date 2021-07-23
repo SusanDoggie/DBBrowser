@@ -63,11 +63,12 @@ class DataSheet extends React.PureComponent {
             <thead style={{
               position: 'sticky',
               top: 0,
+              zIndex: 100,
             }}>
-                <tr style={{ backgroundColor: 'snow', zIndex: 100 }}>
+                <tr style={{ backgroundColor: 'snow' }}>
                   <th />
                   {this.props.columns.map((col, i) => <th key={`${this.state.token}-col-${i}`} style={{ padding: 4 }}>
-                    <Text>{col}</Text>
+                    <Text style={{ fontFamily: 'monospace' }}>{col}</Text>
                     </th>)}
                 </tr>
             </thead>
@@ -79,7 +80,7 @@ class DataSheet extends React.PureComponent {
         </table>}
       rowRenderer={props => (
         <tr style={{ backgroundColor: props.row % 2 == 0 ? 'white' : 'snow' }}>
-            <td style={{ padding: 4 }}><Text>{props.row+1}</Text></td>
+            <td style={{ padding: 4 }}><Text style={{ fontFamily: 'monospace' }}>{props.row+1}</Text></td>
             {props.children}
         </tr>
       )}
