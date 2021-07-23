@@ -13,7 +13,7 @@ import JsonCode from './JsonCode';
 
 class ValueViewer extends React.PureComponent {
 
-  renderValue() {
+  render() {
     
     const { value } = this.props.value;
     
@@ -97,10 +97,6 @@ class ValueViewer extends React.PureComponent {
       default: return <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{EJSON.stringify(value)}</Text>;
     }
   }
-
-  render() {
-    return <View style={{ width: this.props.width ?? 96, padding: 4 }}>{this.renderValue()}</View>;
-  }
 }
 
 class DataSheetHeader extends React.PureComponent {
@@ -132,12 +128,11 @@ class DataSheetHeader extends React.PureComponent {
       top: 0,
       zIndex: 100,
     }}>
-      <tr key={`tr-${this.state.token}`} style={{ backgroundColor: 'snow' }}>
+      <tr key={`tr-${this.state.token}`} style={{ backgroundColor: '#DCDCDC' }}>
         <th />
         {this.props.columns.map((col, i) => <th key={`${this.state.token}-col-${i}`} style={{ position: 'relative' }}>
             <ResizableBox
               axis='x'
-              height={32}
               handle={(handleAxis, ref) => <div 
                 ref={ref} 
                 style={{ 
@@ -165,20 +160,11 @@ class DataSheetHeader extends React.PureComponent {
 
 class DataSheet extends React.PureComponent {
 
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      token: uuidv4(),
-      columnSetting: {},
-    };
-  }
-
   render() {
     return <ReactDataSheet
-      key={`rndatasheet-${this.state.token}`}
       data={this.props.data}
-      sheetRenderer={props => <table key={`table-${this.state.token}`} className={props.className}>
+      sheetRenderer={props => <table 
+        className={props.className}>
           <DataSheetHeader {...this.props} />
           <tbody style={{
             backgroundColor: 'white',
@@ -186,12 +172,25 @@ class DataSheet extends React.PureComponent {
             {props.children}
           </tbody>
         </table>}
-      rowRenderer={props => <tr style={{ backgroundColor: props.row % 2 == 0 ? 'white' : 'snow' }}>
+      rowRenderer={props => <tr 
+        className={props.className} 
+        style={{ backgroundColor: props.row % 2 == 0 ? 'white' : 'snow' }}>
         <td style={{ padding: 4, overflow: 'hidden' }}>
           <Text style={{ fontFamily: 'monospace' }}>{props.row+1}</Text>
         </td>
         {props.children}
       </tr>}
+      cellRenderer={(props) => <td 
+        className={props.className} 
+        onMouseDown={props.onMouseDown}
+        onMouseOver={props.onMouseOver}
+        onDoubleClick={props.onDoubleClick}
+        onContextMenu={props.onContextMenu}
+        style={{ position: 'relative', padding: 4 }}>
+        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, justifyContent: 'center' }}>
+          {props.children}
+        </View>
+      </td>}
       valueViewer={(props) => <ValueViewer {...props} />}
       valueRenderer={x => x} />;
   }
