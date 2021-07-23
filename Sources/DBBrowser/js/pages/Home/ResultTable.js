@@ -31,7 +31,7 @@ class ValueViewer extends React.PureComponent {
     }
     
     if (_.isDate(value)) {
-      return <Text style={{ color: 'darkslateblue', fontFamily: 'monospace' }} numberOfLines={1}>{value.toISOString()}</Text>;
+      return <Text style={{ color: 'darkslateblue', fontFamily: 'monospace' }} numberOfLines={1}>{value.toLocaleString('en', { timeZoneName: 'short' })}</Text>;
     }
 
     if (_.isString(value)) {
