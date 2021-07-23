@@ -128,7 +128,7 @@ class DataSheetHeader extends React.PureComponent {
       top: 0,
       zIndex: 100,
     }}>
-      <tr key={`tr-${this.state.token}`} style={{ backgroundColor: '#DFE2E2' }}>
+      <tr key={`tr-${this.state.token}`} style={{ backgroundColor: '#FAFAFA' }}>
         <th />
         {this.props.columns.map((col, i) => <th key={`${this.state.token}-col-${i}`} style={{ position: 'relative' }}>
             <ResizableBox
@@ -174,7 +174,7 @@ class DataSheet extends React.PureComponent {
         </table>}
       rowRenderer={props => <tr 
         className={props.className} 
-        style={{ backgroundColor: props.row % 2 == 0 ? 'white' : 'snow' }}>
+        style={{ backgroundColor: props.row % 2 == 0 ? 'white' : '#FAFAFA' }}>
         <td style={{ padding: 4, overflow: 'hidden' }}>
           <Text style={{ fontFamily: 'monospace' }}>{props.row+1}</Text>
         </td>
