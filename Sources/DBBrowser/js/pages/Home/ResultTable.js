@@ -56,7 +56,7 @@ class DataSheet extends React.PureComponent {
         </table>}
       rowRenderer={props => (
         <tr>
-            <td><Text>{props.row}</Text></td>
+            <td><Text>{props.row+1}</Text></td>
             {props.children}
         </tr>
       )}
@@ -78,7 +78,9 @@ export default class ResultTable extends React.PureComponent {
   renderBody() {
     
     if (!_.isArray(this.props.data)) {
-      return <JsonCode value={this.props.data} space={4} />;
+      return <ScrollView style={{ flex: 1 }}>
+        <JsonCode value={this.props.data} space={4} />
+      </ScrollView>;
     }
 
     switch (this.state.style) {
@@ -88,12 +90,18 @@ export default class ResultTable extends React.PureComponent {
         const columns = this.props.data.reduce((result, x) => _.uniq(result.concat(Object.keys(x))), []);
         const grid = this.props.data.map(x => columns.map(c => { return { value: x[c] } }));
 
-        return <DataSheet
-          data={grid}
-          columns={columns} />;
+        return <ScrollView style={{ flex: 1 }}>
+          <ScrollView horizontal style={{ flex: 1 }}>
+            <DataSheet
+              data={grid}
+              columns={columns} />
+          </ScrollView>
+        </ScrollView>;
 
       case 'raw':
-        return <JsonCode value={this.props.data} space={4} />;
+        return <ScrollView style={{ flex: 1 }}>
+          <JsonCode value={this.props.data} space={4} />
+        </ScrollView>;
     }
   }
 
@@ -137,9 +145,7 @@ export default class ResultTable extends React.PureComponent {
         }}
         onPress={() => this.setState({ style: 'raw' })} />
     </View>
-    <ScrollView style={{ flex: 1 }}>
-      {this.renderBody()}
-    </ScrollView>
+    {this.renderBody()}
     </View>;
   }
 }

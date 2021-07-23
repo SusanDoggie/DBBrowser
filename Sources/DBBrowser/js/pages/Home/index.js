@@ -27,6 +27,7 @@ class Home extends React.Component {
       result: '',
       databases: [],
       tables: [],
+      counts: {},
     };
   }
 
@@ -82,6 +83,35 @@ class Home extends React.Component {
     tables.sort();
 
     this.setState({ databases, tables });
+
+    const counts = {};
+    await Promise.all(tables.map(async (x) => counts[x] = await this.loadRowCount(x)));
+
+    this.setState({ counts });
+  }
+
+  async loadRowCount(table) {
+    
+    const url = Url.parse(this.state.connectionStr);
+
+    const database = this.props.database;
+
+    let result;
+
+    switch (url.protocol) {
+      case 'mysql:':
+      case 'postgres:':
+        
+        result = await database.runSQLCommand(`SELECT COUNT(*) AS count FROM ${table}`);
+        return result[0].count;
+
+      case 'mongodb:': 
+
+        result = await database.runMongoCommand({ count: table });
+        return result.n;
+
+      default: break;
+    }
   }
 
   async runCommand(command) {
@@ -114,7 +144,7 @@ class Home extends React.Component {
 
           while(_.isInteger(cursor_id) && cursor_id > 0) {
 
-            let batch = await database.runMongoCommand(EJSON.stringify({ getMore: { $numberLong: `${cursor_id}` }, collection }));
+            let batch = await database.runMongoCommand({ getMore: { $numberLong: `${cursor_id}` }, collection });
 
             if (batch.ok != 1 || _.isEmpty(batch.cursor) || cursor_id != batch.cursor.id) {
               break;
@@ -307,24 +337,19 @@ class Home extends React.Component {
               <MaterialCommunityIcons name='reload' size={18} color='white' />
             </TouchableWithoutFeedback>
           </View>
-          {this.state.databases?.map(name => <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
+          {this.state.databases?.map(name => <View style={{ marginHorizontal: 16, marginVertical: 8, alignItems: 'stretch' }}>
             <Button 
               title={name} 
               style={{
                 padding: 0,
                 borderRadius: null,
                 backgroundColor: null,
-                alignSelf: 'flex-start',
+                alignItems: 'stretch',
               }}
-              titleStyle={{
-                color: 'white',
-                opacity: 0.4,
-              }}
-              titleHoverStyle={{
-                color: 'white',
-                opacity: 1,
-              }}
-              onPress={() => this.onPressDatabase(name)} />
+              onPress={() => this.onPressDatabase(name)}
+              render={({isHover}) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ flex: 1, color: 'white', opacity: isHover ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
+              </View>} />
             </View>)}
         </View>
         <View>
@@ -334,24 +359,20 @@ class Home extends React.Component {
               <MaterialCommunityIcons name='reload' size={18} color='white' />
             </TouchableWithoutFeedback>
           </View>
-          {this.state.tables?.map(name => <View style={{ marginHorizontal: 16, marginVertical: 8 }}>
+          {this.state.tables?.map(name => <View style={{ marginHorizontal: 16, marginVertical: 8, alignItems: 'stretch' }}>
             <Button 
               title={name} 
               style={{
                 padding: 0,
                 borderRadius: null,
                 backgroundColor: null,
-                alignSelf: 'flex-start',
+                alignItems: 'stretch',
               }}
-              titleStyle={{
-                color: 'white',
-                opacity: 0.4,
-              }}
-              titleHoverStyle={{
-                color: 'white',
-                opacity: 1,
-              }}
-              onPress={() => this.onPressTable(name)} />
+              onPress={() => this.onPressTable(name)}
+              render={({isHover}) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ flex: 1, color: 'white', opacity: isHover ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
+                <Text style={{ color: 'white', opacity: isHover ? 1 : 0.4, marginLeft: 8 }}>{this.state.counts[name]}</Text>
+              </View>} />
             </View>)}
         </View>
       </ScrollView>;

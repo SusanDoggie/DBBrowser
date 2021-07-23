@@ -57,6 +57,7 @@ export default class Button extends React.PureComponent {
 			hoverStyle,
 			titleStyle,
 			titleHoverStyle,
+			render,
 			onHoverIn,
 			onHoverOut,
 			...props
@@ -71,11 +72,26 @@ export default class Button extends React.PureComponent {
 
 		const Icon = icons_map[icon];
 
+		let content;
+
+		if (_.isNil(render)) {
+
+			if (!_.isEmpty(Icon) && !_.isEmpty(title)) {
+				content = <Text style={{ color: 'white', ..._titleStyle }}><Icon {..._iconStyle} /> {title}</Text>;
+			} else if (!_.isEmpty(Icon)) {
+				content = <Icon color='white' {..._iconStyle} />;
+			} else if (!_.isEmpty(title)) {
+				content = <Text style={{ color: 'white', ..._titleStyle }}>{title}</Text>;
+			}
+
+		} else {
+			content = render({ isHover: this.state.isHover });
+		}
+
 		return <Pressable
 		onHoverIn={_onHoverIn}
 		onHoverOut={_onHoverOut}
 		style={{
-			flexDirection: 'row',
 			padding: 8,
 			borderRadius: 4,
 			alignItems: 'center',
@@ -83,8 +99,7 @@ export default class Button extends React.PureComponent {
 			backgroundColor: this.state.isHover ? '#1691E8' : '#2196F3',
 			..._style
 		}} {...props}>
-			{!_.isEmpty(Icon) && <Icon color='white' {..._iconStyle} />}
-			{!_.isEmpty(title) && <Text style={{ color: 'white', ..._titleStyle }}>{title}</Text>}
+			{content}
 		</Pressable>;
 	}
   }
