@@ -11,6 +11,8 @@ import './default.css';
 import 'codemirror/mode/sql/sql';
 import 'codemirror/mode/javascript/javascript';
 
+import 'react-resizable/css/styles.css';
+
 function Main(props) {
 	return <BrowserRouter><App /></BrowserRouter>;
 }

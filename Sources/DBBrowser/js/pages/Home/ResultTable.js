@@ -4,6 +4,9 @@ import { View, Text } from 'react-native';
 import ReactDataSheet from 'react-datasheet';
 import { v4 as uuidv4 } from 'uuid';
 import { Binary, UUID, EJSON } from 'bson';
+import Entypo from 'react-native-vector-icons/dist/Entypo';
+import { ResizableBox } from 'react-resizable';
+import storage from '../../utils/storage';
 
 import Button from '../../components/Button';
 import JsonCode from './JsonCode';
@@ -100,6 +103,66 @@ class ValueViewer extends React.PureComponent {
   }
 }
 
+class DataSheetHeader extends React.PureComponent {
+
+  constructor(props) {
+    super(props);
+
+    const columnSetting = storage.getItem('columnSetting') ?? {};
+
+    this.state = {
+      token: uuidv4(),
+      columnSetting: columnSetting[props.columnSettingKey] ?? {},
+    };
+  }
+
+  updateColumnSetting(setting) {
+
+    const columnSetting = storage.getItem('columnSetting') ?? {};
+    columnSetting[this.props.columnSettingKey] = setting;
+    storage.setItem('columnSetting', columnSetting);
+
+    this.setState({ columnSetting: setting });
+  }
+
+  render() {
+    return <thead key={`thead-${this.state.token}`} style={{
+      position: 'sticky',
+      tableLayout: 'fixed',
+      top: 0,
+      zIndex: 100,
+    }}>
+      <tr key={`tr-${this.state.token}`} style={{ backgroundColor: 'snow' }}>
+        <th />
+        {this.props.columns.map((col, i) => <th key={`${this.state.token}-col-${i}`} style={{ position: 'relative' }}>
+            <ResizableBox
+              axis='x'
+              height={32}
+              handle={(handleAxis, ref) => <div 
+                ref={ref} 
+                style={{ 
+                  display: 'flex',
+                  position: 'absolute',
+                  alignItems: 'center',
+                  right: 0, 
+                  top: 0, 
+                  bottom: 0,
+                }}>
+                  <Entypo name='dots-three-vertical' color='gray' />
+                </div>}
+              resizeHandles={['e']}
+              width={this.state.columnSetting[col]?.width ?? 96}
+              onResize={(e, {size}) => this.updateColumnSetting({ ...this.state.columnSetting, [col]: { width: size.width } })}>
+              <View style={{ flexDirection: 'row', padding: 4, paddingRight: 32, alignItems: 'center' }}>
+                <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{col}</Text>
+              </View>
+            </ResizableBox>
+          </th>)}
+        </tr>
+    </thead>;
+  }
+}
+
 class DataSheet extends React.PureComponent {
 
   constructor(props) {
@@ -107,38 +170,29 @@ class DataSheet extends React.PureComponent {
 
     this.state = {
       token: uuidv4(),
+      columnSetting: {},
     };
   }
 
   render() {
     return <ReactDataSheet
+      key={`rndatasheet-${this.state.token}`}
       data={this.props.data}
-      sheetRenderer={props => <table className={props.className}>
-            <thead style={{
-              position: 'sticky',
-              top: 0,
-              zIndex: 100,
-            }}>
-                <tr style={{ backgroundColor: 'snow' }}>
-                  <th />
-                  {this.props.columns.map((col, i) => <th key={`${this.state.token}-col-${i}`} style={{ padding: 4 }}>
-                    <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{col}</Text>
-                    </th>)}
-                </tr>
-            </thead>
-            <tbody style={{
-              backgroundColor: 'white',
-            }}>
-                {props.children}
-            </tbody>
-        </table>}
-      rowRenderer={props => (
-        <tr style={{ backgroundColor: props.row % 2 == 0 ? 'white' : 'snow' }}>
-            <td style={{ padding: 4 }}><Text style={{ fontFamily: 'monospace' }}>{props.row+1}</Text></td>
+      sheetRenderer={props => <table key={`table-${this.state.token}`} className={props.className}>
+          <DataSheetHeader {...this.props} />
+          <tbody style={{
+            backgroundColor: 'white',
+          }}>
             {props.children}
-        </tr>
-      )}
-      valueViewer={ValueViewer}
+          </tbody>
+        </table>}
+      rowRenderer={props => <tr style={{ backgroundColor: props.row % 2 == 0 ? 'white' : 'snow' }}>
+        <td style={{ padding: 4, overflow: 'hidden' }}>
+          <Text style={{ fontFamily: 'monospace' }}>{props.row+1}</Text>
+        </td>
+        {props.children}
+      </tr>}
+      valueViewer={(props) => <ValueViewer {...props} />}
       valueRenderer={x => x} />;
   }
 }
@@ -149,6 +203,7 @@ export default class ResultTable extends React.PureComponent {
     super(props);
 
     this.state = {
+			token: uuidv4(),
       style: 'table',
     };
   }
@@ -156,27 +211,33 @@ export default class ResultTable extends React.PureComponent {
   renderBody() {
     
     if (!_.isArray(this.props.data)) {
-      return <JsonCode value={this.props.data} space={4} />;
+      return <JsonCode key={`jsoncode-${this.state.token}`} value={this.props.data} space={4} />;
     }
 
     switch (this.state.style) {
 
       case 'table':
 
+        const { 
+          columnSettingKey,
+        } = this.props;
+        
         const columns = this.props.data.reduce((result, x) => _.uniq(result.concat(Object.keys(x))), []);
         const grid = this.props.data.map(x => columns.map(c => { return { value: x[c] } }));
 
-        return <DataSheet data={grid} columns={columns} />;
+        return <DataSheet key={`datasheet-${this.state.token}`} data={grid} columns={columns} columnSettingKey={columnSettingKey} />;
 
       case 'raw':
-        return <JsonCode value={this.props.data} space={4} />;
+        return <JsonCode key={`jsoncode-${this.state.token}`} value={this.props.data} space={4} />;
     }
   }
 
   render() {
     
     const { 
-      data, 
+      data,
+      columnSetting,
+      onColumnChanged,
       ...props
     } = this.props;
     

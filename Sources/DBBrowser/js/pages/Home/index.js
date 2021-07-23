@@ -23,6 +23,7 @@ class Home extends React.Component {
       isConnected: false,
       autoConnect: false,
       connectionStr: '',
+      currentTable: null,
       command: '',
       result: '',
       databases: [],
@@ -114,7 +115,7 @@ class Home extends React.Component {
     }
   }
 
-  async runCommand(command) {
+  async runCommand(command, currentTable) {
 
     try {
 
@@ -165,7 +166,7 @@ class Home extends React.Component {
         result = await database.runSQLCommand(_command, { relaxed: false });
       }
 
-      this.setState({ result, command: _command });
+      this.setState({ result, command: _command, currentTable });
       
     } catch (e) {
       console.log(e);
@@ -177,6 +178,7 @@ class Home extends React.Component {
     const url = Url.parse(this.state.connectionStr);
 
     let mode = null;
+    let currentTable = this.state.currentTable;
 
     switch (url.protocol) {
       case 'mysql:': 
@@ -187,12 +189,20 @@ class Home extends React.Component {
         break;
       case 'mongodb:': 
         mode = 'application/x-json';
+        try {
+          currentTable = !_.isEmpty(this.state.command) ? EJSON.parse(this.state.command)?.find : null;
+        } catch (e) {
+          currentTable = null;
+        }
         break;
       default: break;
     }
 
     return <View style={{ flex: 1 }}>
-      <ResultTable style={{ flex: 1 }} data={this.state.result} />
+      <ResultTable 
+        style={{ flex: 1 }} 
+        data={this.state.result} 
+        columnSettingKey={currentTable} />
       <View style={{ 
         padding: 4,
         flexDirection: 'row', 
@@ -233,10 +243,6 @@ class Home extends React.Component {
     storage.setItem('connectionStr', connectionStr);
   }
 
-  async onPressDatabase(name) {
-
-  }
-
   async onPressTable(name) {
 
     const url = Url.parse(this.state.connectionStr);
@@ -245,12 +251,12 @@ class Home extends React.Component {
       case 'mysql:':
       case 'postgres:':
         
-        await this.runCommand(`SELECT * FROM ${name} LIMIT 100`);
+        await this.runCommand(`SELECT * FROM ${name} LIMIT 100`, name);
         break;
 
       case 'mongodb:': 
 
-        await this.runCommand(EJSON.stringify({ find: name, limit: 100 }));
+        await this.runCommand(EJSON.stringify({ find: name, limit: 100 }), name);
         break;
 
       default: break;
@@ -335,6 +341,9 @@ class Home extends React.Component {
 
     if (this.state.isConnected) {
 
+      const url = Url.parse(this.state.connectionStr);
+      const current_database = url.pathname?.split('/')[1];
+
       return <ScrollView>
         <View>
           <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
@@ -352,9 +361,8 @@ class Home extends React.Component {
                 backgroundColor: null,
                 alignItems: 'stretch',
               }}
-              onPress={() => this.onPressDatabase(name)}
               render={({isHover}) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ flex: 1, color: 'white', opacity: isHover ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
+                <Text style={{ flex: 1, color: 'white', opacity: isHover || current_database == name ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
               </View>} />
             </View>)}
         </View>
@@ -376,8 +384,8 @@ class Home extends React.Component {
               }}
               onPress={() => this.onPressTable(name)}
               render={({isHover}) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ flex: 1, color: 'white', opacity: isHover ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
-                <Text style={{ color: 'white', opacity: isHover ? 1 : 0.4, marginLeft: 8 }}>{this.state.counts[name]}</Text>
+                <Text style={{ flex: 1, color: 'white', opacity: isHover || this.state.currentTable == name ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
+                <Text style={{ color: 'white', opacity: isHover || this.state.currentTable == name ? 1 : 0.4, marginLeft: 8 }}>{this.state.counts[name]}</Text>
               </View>} />
             </View>)}
         </View>
