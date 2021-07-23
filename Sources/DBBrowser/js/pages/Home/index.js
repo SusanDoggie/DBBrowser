@@ -197,6 +197,7 @@ class Home extends React.Component {
         padding: 4,
         flexDirection: 'row', 
         background: '#2F4F4F',
+        alignItems: 'stretch',
       }}>
         <Button 
           icon='Ionicons' 
@@ -209,6 +210,7 @@ class Home extends React.Component {
             borderRadius: null,
             backgroundColor: null,
             marginHorizontal: 4,
+            aspectRatio: 1,
           }}
           onPress={() => this.runCommand()} />
       </View>

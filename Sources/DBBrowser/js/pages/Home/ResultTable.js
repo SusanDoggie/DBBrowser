@@ -131,6 +131,7 @@ export default class ResultTable extends React.PureComponent {
       padding: 4,
       flexDirection: 'row', 
       background: '#2F4F4F',
+      alignItems: 'stretch',
     }}>
       {_.isArray(this.props.data) && <Button 
         icon='FontAwesome' 
@@ -143,6 +144,7 @@ export default class ResultTable extends React.PureComponent {
           borderRadius: null,
           backgroundColor: null,
           marginHorizontal: 4,
+          aspectRatio: 1,
         }}
         onPress={() => this.setState({ style: 'table' })} />}
       <Button
@@ -156,6 +158,7 @@ export default class ResultTable extends React.PureComponent {
           borderRadius: null,
           backgroundColor: null,
           marginHorizontal: 4,
+          aspectRatio: 1,
         }}
         onPress={() => this.setState({ style: 'raw' })} />
     </View>
