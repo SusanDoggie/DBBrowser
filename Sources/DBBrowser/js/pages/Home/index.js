@@ -26,6 +26,7 @@ class Home extends React.Component {
       currentTable: null,
       command: '',
       result: '',
+      resultStyle: 'table',
       databases: [],
       tables: [],
       counts: {},
@@ -199,9 +200,45 @@ class Home extends React.Component {
     }
 
     return <View style={{ flex: 1 }}>
+      <View style={{ 
+        padding: 4,
+        flexDirection: 'row', 
+        background: '#2F4F4F',
+        alignItems: 'stretch',
+      }}>
+        {_.isArray(this.state.result) && <Button 
+          icon='FontAwesome' 
+          iconStyle={{ 
+            name: 'table',
+            size: 18,
+          }} 
+          style={{
+            padding: 0,
+            borderRadius: null,
+            backgroundColor: null,
+            marginHorizontal: 4,
+            aspectRatio: 1,
+          }}
+          onPress={() => this.setState({ resultStyle: 'table' })} />}
+        <Button
+          icon='MaterialCommunityIcons' 
+          iconStyle={{ 
+            name: 'code-json',
+            size: 18,
+          }} 
+          style={{
+            padding: 0,
+            borderRadius: null,
+            backgroundColor: null,
+            marginHorizontal: 4,
+            aspectRatio: 1,
+          }}
+          onPress={() => this.setState({ resultStyle: 'raw' })} />
+      </View>
       <ResultTable 
         style={{ flex: 1 }} 
         data={this.state.result} 
+        displayStyle={this.state.resultStyle} 
         columnSettingKey={currentTable} />
       <View style={{ 
         padding: 4,

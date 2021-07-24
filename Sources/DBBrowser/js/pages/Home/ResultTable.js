@@ -148,7 +148,7 @@ class DataSheetHeader extends React.PureComponent {
               resizeHandles={['e']}
               width={this.state.columnSetting[col]?.width ?? 96}
               onResize={(e, {size}) => this.updateColumnSetting({ ...this.state.columnSetting, [col]: { width: size.width } })}>
-              <View style={{ flexDirection: 'row', padding: 4, paddingRight: 32, alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', padding: 4, paddingRight: 16, alignItems: 'center' }}>
                 <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{col}</Text>
               </View>
             </ResizableBox>
@@ -203,7 +203,6 @@ export default class ResultTable extends React.PureComponent {
 
     this.state = {
 			token: uuidv4(),
-      style: 'table',
     };
   }
 
@@ -213,7 +212,7 @@ export default class ResultTable extends React.PureComponent {
       return <JsonCode key={`jsoncode-${this.state.token}`} value={this.props.data} space={4} />;
     }
 
-    switch (this.state.style) {
+    switch (this.props.displayStyle) {
 
       case 'table':
 
@@ -235,50 +234,13 @@ export default class ResultTable extends React.PureComponent {
     
     const { 
       data,
-      columnSetting,
-      onColumnChanged,
       ...props
     } = this.props;
     
     return <View {...props}>
-    <View style={{ 
-      padding: 4,
-      flexDirection: 'row', 
-      background: '#2F4F4F',
-      alignItems: 'stretch',
-    }}>
-      {_.isArray(this.props.data) && <Button 
-        icon='FontAwesome' 
-        iconStyle={{ 
-          name: 'table',
-          size: 18,
-        }} 
-        style={{
-          padding: 0,
-          borderRadius: null,
-          backgroundColor: null,
-          marginHorizontal: 4,
-          aspectRatio: 1,
-        }}
-        onPress={() => this.setState({ style: 'table' })} />}
-      <Button
-        icon='MaterialCommunityIcons' 
-        iconStyle={{ 
-          name: 'code-json',
-          size: 18,
-        }} 
-        style={{
-          padding: 0,
-          borderRadius: null,
-          backgroundColor: null,
-          marginHorizontal: 4,
-          aspectRatio: 1,
-        }}
-        onPress={() => this.setState({ style: 'raw' })} />
-    </View>
-    <div style={{ flex: 1, overflow: 'scroll' }}>
-      {this.renderBody()}
-    </div>
+      <div style={{ flex: 1, overflow: 'scroll' }}>
+        {this.renderBody()}
+      </div>
     </View>;
   }
 }
