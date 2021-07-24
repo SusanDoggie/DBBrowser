@@ -37,7 +37,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.44.0"),
         .package(url: "https://github.com/SusanDoggie/SwiftJS.git", from: "1.2.2"),
-        .package(url: "https://github.com/SusanDoggie/DoggieDB.git", from: "0.0.1"),
+        .package(url: "https://github.com/SusanDoggie/DoggieDB.git", from: "0.0.3"),
     ],
     targets: [
         .target(
