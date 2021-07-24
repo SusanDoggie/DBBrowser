@@ -359,7 +359,13 @@ class Home extends React.Component {
       case 'mysql:':
       case 'postgres:':
         
-        await this.runCommand(`SELECT * FROM ${name} LIMIT 100`, name);
+        const { table: last_select_table } = this.parse_sql(this.state.last_select_command) ?? {};
+
+        if (last_select_table == name) {
+          await this.runCommand(this.state.last_select_command, name);
+        } else {
+          await this.runCommand(`SELECT * FROM ${name} LIMIT 100`, name);
+        }
         break;
 
       case 'mongodb:': 
