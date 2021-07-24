@@ -213,13 +213,11 @@ class Home extends React.Component {
         _run_command = (command) => database.runSQLCommand(command);
       }
 
-      let last_result_is_select;
-
       for (const command of _command) {
 
         if (_.isEmpty(command.trim())) continue;
 
-        result = await _run_command(command);
+        const _result = await _run_command(command);
 
         const { is_select, table } = this.parse_command(command) ?? {};
 
@@ -230,9 +228,14 @@ class Home extends React.Component {
         if (is_select && _.isString(table)) {
 
           last_select_command = command;
-          last_result_is_select = true;
+          result = _result;
 
-        } else if (_.isEmpty(result) && is_select && _.isString(action) && _.isString(table)) {
+        } else if (!_.isEmpty(_result)) {
+
+          last_select_command = '';
+          result = _result;
+
+        } else if (!is_select && _.isString(table)) {
 
           const { table: last_select_table } = this.parse_command(last_select_command) ?? {};
 
@@ -243,11 +246,10 @@ class Home extends React.Component {
               last_select_command = `SELECT * FROM ${table} LIMIT 100`;
             }
           }
-          last_result_is_select = false;
         }
       }
 
-      if (last_result_is_select == false) {
+      if (_.isEmpty(result) && !_.isEmpty(last_select_command)) {
         result = await _run_command(last_select_command);
       }
 
