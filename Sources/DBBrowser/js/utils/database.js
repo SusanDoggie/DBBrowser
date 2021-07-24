@@ -51,6 +51,10 @@ function createDatabase() {
 			return socket_run({ action: 'connect', url });
 		}
 
+		reconnect(database) {
+			return socket_run({ action: 'reconnect', database });
+		}
+
 		addListener(event, listener) {
 			eventEmitter.addListener(event, listener);
 			return { remove: () => { eventEmitter.removeListener(event, listener) } };	

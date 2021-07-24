@@ -263,6 +263,26 @@ class Home extends React.Component {
     storage.setItem('connectionStr', connectionStr);
   }
 
+  async onPressDatabase(name) {
+
+    const database = this.props.database;
+
+    try {
+      
+      const url = Url.parse(this.state.connectionStr);
+      url.path = `/${name}`;
+      url.pathname = `/${name}`;
+
+      await database.reconnect(name);
+
+      this.setState({ connectionStr: Url.format(url) }, () => this.loadData());
+
+    } catch (e) {
+
+      console.log(e);
+    }
+  }
+
   async onPressTable(name) {
 
     const url = Url.parse(this.state.connectionStr);
@@ -477,6 +497,7 @@ class Home extends React.Component {
                 backgroundColor: null,
                 alignItems: 'stretch',
               }}
+              onPress={() => this.onPressDatabase(name)}
               render={({isHover}) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={{ flex: 1, color: 'white', opacity: isHover || current_database == name ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
               </View>} />

@@ -79,6 +79,8 @@ extension WebSocketController {
         
         var connection: DBConnection?
         
+        var reconnect: ((String, EventLoop) -> EventLoopFuture<DBConnection>)?
+        
         var type: DatabaseType?
     }
 }
@@ -97,7 +99,7 @@ extension WebSocketController {
         switch message["action"].stringValue {
         case "connect":
             
-            guard let url = message["url"].stringValue.flatMap(URL.init(string:)) else {
+            guard let url = message["url"].stringValue.flatMap(URLComponents.init(string:)) else {
                 self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid url")])
                 return
             }
@@ -106,12 +108,42 @@ extension WebSocketController {
                 switch $0 {
                 case let .success(connection):
                     
+                    session.reconnect = { database, eventLoop in
+                        var url = url
+                        url.path = "/\(database)"
+                        return Database.connect(url: url, on: eventLoop)
+                    }
+                    
                     if url.scheme == "mongodb" {
                         session.type = .mongo
                     } else if connection is DBSQLConnection {
                         session.type = .sql
                     }
                     
+                    session.connection = connection
+                    self.send(ws, ["success": true, "token": message["token"]])
+                    
+                case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                }
+            }
+            
+        case "reconnect":
+            
+            guard let reconnect = session.reconnect else {
+                self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                return
+            }
+            
+            guard let database = message["database"].stringValue else {
+                self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                return
+            }
+            
+            reconnect(database, ws.eventLoop).whenComplete {
+                switch $0 {
+                case let .success(connection):
+                    
+                    _ = session.connection?.close()
                     session.connection = connection
                     self.send(ws, ["success": true, "token": message["token"]])
                     
