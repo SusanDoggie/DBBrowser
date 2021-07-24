@@ -35,7 +35,7 @@ export default class extends React.PureComponent {
 			onChange(newValue, change);
 		}
 
-		if (change.origin == 'paste' && _.isArray(change.removed) && change.removed.length == 1) {
+		if (change.origin == 'paste' && _.isArray(change.removed) && change.removed.length == 1 && !_.isEmpty(change.removed[0])) {
 			this.setState({ token: uuidv4() });
 		}
 	}

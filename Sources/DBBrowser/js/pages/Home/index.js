@@ -188,7 +188,7 @@ class Home extends React.Component {
 
     try {
 
-      let _command = command ?? this.state.command;
+      let _command = command;
       let last_select_command = this.state.last_select_command;
 
       if (_.isEmpty(_command.trim())) {
@@ -221,36 +221,31 @@ class Home extends React.Component {
 
         const { is_select, table } = this.parse_command(command) ?? {};
 
-        if (_.isNil(currentTable)) {
-          currentTable = table;
-        }
-
         if (is_select && _.isString(table)) {
 
           last_select_command = command;
+          currentTable = table;
           result = _result;
 
         } else if (!_.isEmpty(_result)) {
 
           last_select_command = '';
+          currentTable = table;
           result = _result;
 
-        } else if (!is_select && _.isString(table)) {
+        } else if (!is_select && _.isString(table) && table != this.parse_command(last_select_command)?.table) {
 
-          const { table: last_select_table } = this.parse_command(last_select_command) ?? {};
-
-          if (table != last_select_table) {
-            if (url.protocol == 'mongodb:') {
-              last_select_command = EJSON.stringify({ find: table, limit: 100 });
-            } else {
-              last_select_command = `SELECT * FROM ${table} LIMIT 100`;
-            }
+          if (url.protocol == 'mongodb:') {
+            last_select_command = EJSON.stringify({ find: table, limit: 100 });
+          } else {
+            last_select_command = `SELECT * FROM ${table} LIMIT 100`;
           }
         }
       }
 
-      if (_.isEmpty(result) && !_.isEmpty(last_select_command)) {
+      if (_.isNil(result) && !_.isEmpty(last_select_command)) {
         result = await _run_command(last_select_command);
+        currentTable = this.parse_command(last_select_command)?.table;
       }
 
       this.setState({ result, command, last_select_command, currentTable });
@@ -344,7 +339,7 @@ class Home extends React.Component {
             marginHorizontal: 4,
             aspectRatio: 1,
           }}
-          onPress={() => this.runCommand()} />
+          onPress={() => this.runCommand(this.state.command)} />
       </View>
       <View style={{ height: 300 }}>
       <CodeMirror
