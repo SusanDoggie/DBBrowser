@@ -29,14 +29,14 @@ export default class extends React.PureComponent {
 			onChange,
 		} = this.props;
 
-		if (change.origin == 'paste' && _.isArray(change.removed) && change.removed.length == 1) {
-			this.setState({ token: uuidv4() });
-		}
-
 		this._value = newValue;
 
 		if (onChange) {
 			onChange(newValue, change);
+		}
+
+		if (change.origin == 'paste' && _.isArray(change.removed) && change.removed.length == 1) {
+			this.setState({ token: uuidv4() });
 		}
 	}
 
