@@ -68,8 +68,37 @@ function createDatabase() {
 			return socket_run({ action: 'runCommand', command: sql }, options);
 		}
 		
-		runMongoCommand(command, options) {
-			return socket_run({ action: 'runCommand', command: new Binary(serialize(command)) }, options);
+		async runMongoCommand(command, options) {
+
+			const _run_command = (command) => socket_run({ action: 'runCommand', command: new Binary(serialize(command)) }, options);
+			
+			let result = await _run_command(command, options);
+
+			if (result.ok.valueOf() == 1 && !_.isEmpty(result.cursor)) {
+
+				let cursor_id = result.cursor.id.value ?? result.cursor.id.toNumber();
+				let _result = result.cursor.firstBatch ?? [];
+				let collection = result.cursor.ns.split('.')[1];
+	  
+				while(_.isInteger(cursor_id) && cursor_id > 0) {
+	  
+					let batch = await _run_command({ getMore: result.cursor.id, collection }, { relaxed: false });
+		
+					if (batch.ok.valueOf() != 1 || _.isEmpty(batch.cursor)) {
+					  break;
+					}
+		
+					_result = _result.concat(batch.cursor.nextBatch);
+		
+					if (cursor_id != (batch.cursor.id.value ?? batch.cursor.id.toNumber())) {
+						break;
+					}
+				}
+	  
+				result = _result;
+			}
+
+			return result
 		}
 	}
 	

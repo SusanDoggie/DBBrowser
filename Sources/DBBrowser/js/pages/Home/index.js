@@ -117,39 +117,56 @@ class Home extends React.Component {
     }
   }
 
-  parse_sql(command) {
+  parse_mongo_command(command) {
+
+    const _command = EJSON.parse(command);
+
+    if (_.isString(_command.find)) {
+      return { is_select: true, table: _command.find };
+    }
+    if (_.isString(_command.delete)) {
+      return { is_select: false, table: _command.delete };
+    }
+    if (_.isString(_command.findAndModify)) {
+      return { is_select: false, table: _command.findAndModify };
+    }
+    if (_.isString(_command.insert)) {
+      return { is_select: false, table: _command.insert };
+    }
+    if (_.isString(_command.update)) {
+      return { is_select: false, table: _command.update };
+    }
+  }
+
+  parse_command(command) {
 
     try {
 
       const url = Url.parse(this.state.connectionStr);
 
-      const parser = new SQLParser();
-      let ast;
-  
-      switch (url.protocol) {
-        
-        case 'mysql:': 
-        
-          ast = parser.astify(command, { database: 'mysql' });
-          break;
-
-        case 'postgres:':
-
-          ast = parser.astify(command, { database: 'postgresql' });
-          break;
+      if (url.protocol == 'mongodb:') {
+        return this.parse_mongo_command(command);
       }
+
+      const database_map = {
+        'mysql:': 'mysql',
+        'postgres:': 'postgresql',
+      }
+  
+      const parser = new SQLParser();
+      let ast = parser.astify(command, { database: database_map[url.protocol] });
 
       if (_.isArray(ast)) {
         ast = _.last(ast);
       }
 
-      switch (ast.type) {
+      switch (ast?.type) {
 
         case 'select':
         case 'delete':
           
           if (_.isArray(ast?.from) && ast.from.length == 1) {
-            return { action: ast.type, table: ast.from[0].table };
+            return { is_select: ast.type == 'select', table: ast.from[0].table };
           }
           break;
 
@@ -157,7 +174,7 @@ class Home extends React.Component {
         case 'update':
           
           if (_.isArray(ast?.table) && ast.table.length == 1) {
-            return { action: ast.type, table: ast.table[0].table };
+            return { is_select: false, table: ast.table[0].table };
           }
           break;
       }
@@ -178,80 +195,63 @@ class Home extends React.Component {
         return;
       }
 
+      const url = Url.parse(this.state.connectionStr);
       const database = this.props.database;
 
-      let result;
-  
-      const url = Url.parse(this.state.connectionStr);
-
       if (url.protocol == 'mongodb:') {
-        
-        const command = EJSON.parse(_command, { relaxed: false });
+        _command = [_command];
+      } else {
+        _command = _command.split(';');
+      }
 
-        result = await database.runMongoCommand(command, { relaxed: false });
+      let result;
+			let _run_command;
+			
+      if (url.protocol == 'mongodb:') {
+        _run_command = (command) => database.runMongoCommand(EJSON.parse(command, { relaxed: false }), { relaxed: false });
+      } else {
+        _run_command = (command) => database.runSQLCommand(command);
+      }
 
-        if (result.ok.valueOf() == 1 && !_.isEmpty(result.cursor)) {
+      let last_result_is_select;
 
-          let cursor_id = result.cursor.id.value ?? result.cursor.id.toNumber();
-          let _result = result.cursor.firstBatch ?? [];
-          let collection = result.cursor.ns.split('.')[1];
+      for (const command of _command) {
 
-          while(_.isInteger(cursor_id) && cursor_id > 0) {
+        if (_.isEmpty(command.trim())) continue;
 
-            let batch = await database.runMongoCommand({ getMore: result.cursor.id, collection }, { relaxed: false });
+        result = await _run_command(command);
 
-            if (batch.ok.valueOf() != 1 || _.isEmpty(batch.cursor)) {
-              break;
-            }
+        const { is_select, table } = this.parse_command(command) ?? {};
 
-            _result = _result.concat(batch.cursor.nextBatch);
-
-            if (cursor_id != (batch.cursor.id.value ?? batch.cursor.id.toNumber())) {
-              break;
-            }
-          }
-
-          result = _result;
+        if (_.isNil(currentTable)) {
+          currentTable = table;
         }
 
-      } else {
+        if (is_select && _.isString(table)) {
 
-        let last_result_is_select;
+          last_select_command = command;
+          last_result_is_select = true;
 
-        for (const command of _command.split(';')) {
+        } else if (_.isEmpty(result) && is_select && _.isString(action) && _.isString(table)) {
 
-          if (_.isEmpty(command.trim())) continue;
+          const { table: last_select_table } = this.parse_command(last_select_command) ?? {};
 
-          result = await database.runSQLCommand(command);
-
-          const { action, table } = this.parse_sql(_command) ?? {};
-  
-          if (_.isNil(currentTable)) {
-            currentTable = table;
-          }
-  
-          if (action == 'select' && _.isString(table)) {
-  
-            last_select_command = command;
-            last_result_is_select = true;
-  
-          } else if (_.isEmpty(result) && action != 'select' && _.isString(action) && _.isString(table)) {
-  
-            const { table: last_select_table } = this.parse_sql(last_select_command) ?? {};
-  
-            if (table != last_select_table) {
+          if (table != last_select_table) {
+            if (url.protocol == 'mongodb:') {
+              last_select_command = EJSON.stringify({ find: table, limit: 100 });
+            } else {
               last_select_command = `SELECT * FROM ${table} LIMIT 100`;
             }
-            last_result_is_select = false;
           }
-        }
-
-        if (last_result_is_select == false) {
-          result = await database.runSQLCommand(last_select_command);
+          last_result_is_select = false;
         }
       }
 
-      this.setState({ result, command: _command, last_select_command, currentTable });
+      if (last_result_is_select == false) {
+        result = await _run_command(last_select_command);
+      }
+
+      this.setState({ result, command, last_select_command, currentTable });
       
     } catch (e) {
       console.log(e);
@@ -367,23 +367,23 @@ class Home extends React.Component {
 
     const url = Url.parse(this.state.connectionStr);
 
-    switch (url.protocol) {
-      case 'mysql:':
-      case 'postgres:':
-        
-        const { table: last_select_table } = this.parse_sql(this.state.last_select_command) ?? {};
+    const last_select_table = this.parse_command(this.state.last_select_command)?.table;
 
-        if (last_select_table == name) {
-          await this.runCommand(this.state.last_select_command, name);
-        } else {
-          await this.runCommand(`SELECT * FROM ${name} LIMIT 100`, name);
-        }
-        break;
+    if (last_select_table == name) {
 
-      case 'mongodb:': 
+      await this.runCommand(this.state.last_select_command, name);
 
-        await this.runCommand(EJSON.stringify({ find: name, limit: 100 }), name);
-        break;
+    } else {
+
+      let select_command;
+  
+      if (url.protocol == 'mongodb:') {
+        select_command = EJSON.stringify({ find: name, limit: 100 });
+      } else {
+        select_command = `SELECT * FROM ${name} LIMIT 100`;
+      }
+
+      await this.runCommand(select_command, name);
     }
   }
 
