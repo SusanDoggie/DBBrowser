@@ -187,11 +187,11 @@ class DataSheet extends React.PureComponent {
         onDoubleClick={props.onDoubleClick}
         onContextMenu={props.onContextMenu}
         style={{ position: 'relative' }}>
-        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, padding: 4, justifyContent: 'center' }}>
+        <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
           {props.children}
         </View>
       </td>}
-      valueViewer={(props) => <ValueViewer {...props} />}
+      valueViewer={(props) => <View style={{ padding: 4 }}><ValueViewer {...props} /></View>}
       valueRenderer={x => x} />;
   }
 }
