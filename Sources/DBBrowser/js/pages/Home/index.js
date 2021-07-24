@@ -184,7 +184,7 @@ class Home extends React.Component {
     }
   }
 
-  async runCommand(command, currentTable) {
+  async runCommand(command) {
 
     try {
 
@@ -205,6 +205,7 @@ class Home extends React.Component {
       }
 
       let result;
+      let currentTable;
 			let _run_command;
 			
       if (url.protocol == 'mongodb:') {
@@ -244,11 +245,11 @@ class Home extends React.Component {
       }
 
       if (_.isNil(result) && !_.isEmpty(last_select_command)) {
-        result = await _run_command(last_select_command);
         currentTable = this.parse_command(last_select_command)?.table;
+        result = await _run_command(last_select_command);
       }
 
-      this.setState({ result, command, last_select_command, currentTable });
+      this.setState({ result, currentTable, command, last_select_command });
       
     } catch (e) {
       console.log(e);
@@ -260,7 +261,6 @@ class Home extends React.Component {
     const url = Url.parse(this.state.connectionStr);
 
     let mode = null;
-    let currentTable = this.state.currentTable;
 
     switch (url.protocol) {
       case 'mysql:': 
@@ -271,11 +271,6 @@ class Home extends React.Component {
         break;
       case 'mongodb:': 
         mode = 'application/x-json';
-        try {
-          currentTable = !_.isEmpty(this.state.command) ? EJSON.parse(this.state.command)?.find : null;
-        } catch (e) {
-          currentTable = null;
-        }
         break;
     }
 
@@ -319,7 +314,7 @@ class Home extends React.Component {
         style={{ flex: 1 }} 
         data={this.state.result} 
         displayStyle={this.state.resultStyle} 
-        columnSettingKey={currentTable} />
+        columnSettingKey={this.state.currentTable} />
       <View style={{ 
         padding: 4,
         flexDirection: 'row', 
@@ -368,7 +363,7 @@ class Home extends React.Component {
 
     if (last_select_table == name) {
 
-      await this.runCommand(this.state.last_select_command, name);
+      await this.runCommand(this.state.last_select_command);
 
     } else {
 
@@ -380,7 +375,7 @@ class Home extends React.Component {
         select_command = `SELECT * FROM ${name} LIMIT 100`;
       }
 
-      await this.runCommand(select_command, name);
+      await this.runCommand(select_command);
     }
   }
 
