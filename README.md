@@ -1,15 +1,15 @@
-# DoggieDB
+# DBBrowser
 
-[![Github Actions](https://github.com/SusanDoggie/DoggieDB/workflows/Builder/badge.svg)](https://github.com/SusanDoggie/DoggieDB/actions)
-[![codecov](https://codecov.io/gh/SusanDoggie/DoggieDB/branch/main/graph/badge.svg)](https://codecov.io/gh/SusanDoggie/DoggieDB)
+[![Github Actions](https://github.com/SusanDoggie/DBBrowser/workflows/Builder/badge.svg)](https://github.com/SusanDoggie/DBBrowser/actions)
+[![codecov](https://codecov.io/gh/SusanDoggie/DBBrowser/branch/main/graph/badge.svg)](https://codecov.io/gh/SusanDoggie/DBBrowser)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey.svg?style=flat)
-[![GitHub release](https://img.shields.io/github/release/SusanDoggie/DoggieDB.svg)](https://github.com/SusanDoggie/DoggieDB/releases)
+[![GitHub release](https://img.shields.io/github/release/SusanDoggie/DBBrowser.svg)](https://github.com/SusanDoggie/DBBrowser/releases)
 [![Swift](https://img.shields.io/badge/swift-5.3-orange.svg?style=flat)](https://swift.org)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
 ## Introduction
 
-DoggieDB provides a set of modules include different database drivers.
+Database browser.
 
 ## System Requirements
 
