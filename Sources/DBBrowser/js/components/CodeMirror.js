@@ -3,7 +3,7 @@ import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import CodeMirror from 'react-codemirror';
 
-export default class extends React.Component {
+export default class extends React.PureComponent {
 
 	constructor(props) {
 		super(props);
@@ -11,12 +11,15 @@ export default class extends React.Component {
 		this.state = {
 			token: uuidv4(),
 		};
+
+		this._value = props.value;
 	}
 
 	componentDidUpdate() {
 		
-		if (this.props.value !== this.state.value) {
-			this.setState({ token: uuidv4(), value: this.props.value });
+		if (this.props.value !== this._value) {
+			this._value = this.props.value;
+			this.setState({ token: uuidv4() });
 		}
 	}
 
@@ -26,7 +29,7 @@ export default class extends React.Component {
 			onChange,
 		} = this.props;
 
-		this.state.value = newValue;
+		this._value = newValue;
 
 		if (onChange) {
 			onChange(newValue, change);
@@ -36,11 +39,13 @@ export default class extends React.Component {
 	render() {
 
 		const {
+			value,
 			onChange,
 			...props
-		}=  this.props;
+		} = this.props;
 
-		return <CodeMirror 
+		return <CodeMirror
+			value={value}
 			key={this.state.token}
 			onChange={(newValue, change) => this.onChange(newValue, change)}
 			{...props} />;

@@ -171,7 +171,7 @@ class Home extends React.Component {
 
     try {
 
-      const _command = command ?? this.state.command;
+      let _command = command ?? this.state.command;
       let last_select_command = this.state.last_select_command;
 
       if (_.isEmpty(_command.trim())) {
@@ -216,25 +216,37 @@ class Home extends React.Component {
 
       } else {
 
-        const { action, table } = this.parse_sql(_command) ?? {};
+        let last_result_is_select;
 
-        if (_.isNil(currentTable)) {
-          currentTable = table;
+        for (const command of _command.split(';')) {
+
+          if (_.isEmpty(command.trim())) continue;
+
+          result = await database.runSQLCommand(command);
+
+          const { action, table } = this.parse_sql(_command) ?? {};
+  
+          if (_.isNil(currentTable)) {
+            currentTable = table;
+          }
+  
+          if (action == 'select' && _.isString(table)) {
+  
+            last_select_command = command;
+            last_result_is_select = true;
+  
+          } else if (_.isEmpty(result) && action != 'select' && _.isString(action) && _.isString(table)) {
+  
+            const { table: last_select_table } = this.parse_sql(last_select_command) ?? {};
+  
+            if (table != last_select_table) {
+              last_select_command = `SELECT * FROM ${table} LIMIT 100`;
+            }
+            last_result_is_select = false;
+          }
         }
 
-        result = await database.runSQLCommand(_command);
-
-        if (action == 'select' && _.isString(table)) {
-
-          last_select_command = _command;
-
-        } else if (action != 'select' && _.isString(action) && _.isString(table)) {
-
-          const { table: last_select_table } = this.parse_sql(last_select_command) ?? {};
-
-          if (table != last_select_table) {
-            last_select_command = `SELECT * FROM ${table} LIMIT 100`;
-          }
+        if (last_result_is_select == false) {
           result = await database.runSQLCommand(last_select_command);
         }
       }
