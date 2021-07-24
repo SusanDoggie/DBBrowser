@@ -256,6 +256,37 @@ class Home extends React.Component {
     }
   }
 
+  setConnectionStr(connectionStr) {
+
+    this.setState({ connectionStr, autoConnect: false });
+
+    storage.setItem('connectionStr', connectionStr);
+  }
+
+  async onPressTable(name) {
+
+    const url = Url.parse(this.state.connectionStr);
+
+    const last_select_table = this.parse_command(this.state.last_select_command)?.table;
+
+    if (last_select_table == name) {
+
+      await this.runCommand(this.state.last_select_command);
+
+    } else {
+
+      let select_command;
+  
+      if (url.protocol == 'mongodb:') {
+        select_command = EJSON.stringify({ find: name, limit: 100 });
+      } else {
+        select_command = `SELECT * FROM ${name} LIMIT 100`;
+      }
+
+      await this.runCommand(select_command);
+    }
+  }
+
   renderDashboard() {
 
     const url = Url.parse(this.state.connectionStr);
@@ -346,37 +377,6 @@ class Home extends React.Component {
         }} />
       </View>
     </View>;
-  }
-
-  setConnectionStr(connectionStr) {
-
-    this.setState({ connectionStr, autoConnect: false });
-
-    storage.setItem('connectionStr', connectionStr);
-  }
-
-  async onPressTable(name) {
-
-    const url = Url.parse(this.state.connectionStr);
-
-    const last_select_table = this.parse_command(this.state.last_select_command)?.table;
-
-    if (last_select_table == name) {
-
-      await this.runCommand(this.state.last_select_command);
-
-    } else {
-
-      let select_command;
-  
-      if (url.protocol == 'mongodb:') {
-        select_command = EJSON.stringify({ find: name, limit: 100 });
-      } else {
-        select_command = `SELECT * FROM ${name} LIMIT 100`;
-      }
-
-      await this.runCommand(select_command);
-    }
   }
 
   renderLoginPanel() {
