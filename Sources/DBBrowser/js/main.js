@@ -11,6 +11,9 @@ import './default.css';
 import 'codemirror/mode/sql/sql';
 import 'codemirror/mode/javascript/javascript';
 
+import 'node-sql-parser/umd/mysql.umd';
+import 'node-sql-parser/umd/postgresql.umd';
+
 import 'react-resizable/css/styles.css';
 
 function Main(props) {

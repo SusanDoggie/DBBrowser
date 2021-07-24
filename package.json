@@ -33,6 +33,7 @@
     "@loadable/component": "^5.14.1",
     "bson": "^4.4.0",
     "lodash": "^4.17.21",
+    "node-sql-parser": "^3.6.1",
     "react": "^17.0.1",
     "react-codemirror": "^1.0.0",
     "react-datasheet": "^1.4.9",

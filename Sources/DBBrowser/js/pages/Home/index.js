@@ -6,6 +6,8 @@ import { withRouter } from 'react-router';
 import { EJSON } from 'bson';
 import Url from 'url';
 
+import { Parser as SQLParser } from 'node-sql-parser';
+
 import CodeMirror from '../../components/CodeMirror';
 import Button from '../../components/Button';
 import RoundButton from '../../components/RoundButton';
@@ -25,6 +27,7 @@ class Home extends React.Component {
       connectionStr: '',
       currentTable: null,
       command: '',
+      last_select_command: '',
       result: '',
       resultStyle: 'table',
       databases: [],
@@ -111,8 +114,56 @@ class Home extends React.Component {
 
         result = await database.runMongoCommand({ count: table });
         return result.n;
+    }
+  }
 
-      default: break;
+  parse_sql(command) {
+
+    try {
+
+      const url = Url.parse(this.state.connectionStr);
+
+      const parser = new SQLParser();
+      let ast;
+  
+      switch (url.protocol) {
+        
+        case 'mysql:': 
+        
+          ast = parser.astify(command, { database: 'mysql' });
+          break;
+
+        case 'postgres:':
+
+          ast = parser.astify(command, { database: 'postgresql' });
+          break;
+      }
+
+      if (_.isArray(ast)) {
+        ast = _.last(ast);
+      }
+
+      switch (ast.type) {
+
+        case 'select':
+        case 'delete':
+          
+          if (_.isArray(ast?.from) && ast.from.length == 1) {
+            return { action: ast.type, table: ast.from[0].table };
+          }
+          break;
+
+        case 'insert':
+        case 'update':
+          
+          if (_.isArray(ast?.table) && ast.table.length == 1) {
+            return { action: ast.type, table: ast.table[0].table };
+          }
+          break;
+      }
+      
+    } catch (e) {
+      console.log(e);
     }
   }
 
@@ -121,6 +172,7 @@ class Home extends React.Component {
     try {
 
       const _command = command ?? this.state.command;
+      let last_select_command = this.state.last_select_command;
 
       if (_.isEmpty(_command.trim())) {
         return;
@@ -163,11 +215,31 @@ class Home extends React.Component {
         }
 
       } else {
-        
-        result = await database.runSQLCommand(_command, { relaxed: false });
+
+        const { action, table } = this.parse_sql(_command) ?? {};
+
+        if (_.isNil(currentTable)) {
+          currentTable = table;
+        }
+
+        result = await database.runSQLCommand(_command);
+
+        if (action == 'select' && _.isString(table)) {
+
+          last_select_command = _command;
+
+        } else if (action != 'select' && _.isString(action) && _.isString(table)) {
+
+          const { table: last_select_table } = this.parse_sql(last_select_command) ?? {};
+
+          if (table != last_select_table) {
+            last_select_command = `SELECT * FROM ${table} LIMIT 100`;
+          }
+          result = await database.runSQLCommand(last_select_command);
+        }
       }
 
-      this.setState({ result, command: _command, currentTable });
+      this.setState({ result, command: _command, last_select_command, currentTable });
       
     } catch (e) {
       console.log(e);
@@ -196,7 +268,6 @@ class Home extends React.Component {
           currentTable = null;
         }
         break;
-      default: break;
     }
 
     return <View style={{ flex: 1 }}>
@@ -295,8 +366,6 @@ class Home extends React.Component {
 
         await this.runCommand(EJSON.stringify({ find: name, limit: 100 }), name);
         break;
-
-      default: break;
     }
   }
 
