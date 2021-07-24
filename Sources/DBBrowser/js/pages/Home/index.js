@@ -460,7 +460,7 @@ class Home extends React.Component {
       const url = Url.parse(this.state.connectionStr);
       const current_database = url.pathname?.split('/')[1];
 
-      return <ScrollView>
+      return <React.Fragment>
         <View>
           <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
             <Text style={{ color: 'white', fontFamily: 'monospace', fontWeight: '600' }}>DATABASES</Text>
@@ -505,11 +505,8 @@ class Home extends React.Component {
               </View>} />
             </View>)}
         </View>
-      </ScrollView>;
+      </React.Fragment>;
     }
-
-    return <ScrollView>
-    </ScrollView>;
   }
   
   render() {
@@ -520,8 +517,12 @@ class Home extends React.Component {
       alignItems: 'stretch',
       background: 'snow',
     }}>
-      <View style={{ width: 240, background: '#2F4F4F' }}>{this.renderSideMenu()}</View>
-      <View style={{ flex: 1 }}>{this.state.isConnected ? this.renderDashboard() : this.renderLoginPanel()}</View>
+      <View style={{ width: 240, background: '#2F4F4F' }}>
+        <ScrollView>{this.renderSideMenu()}</ScrollView>
+      </View>
+      <View style={{ flex: 1 }}>
+        {this.state.isConnected ? this.renderDashboard() : this.renderLoginPanel()}
+      </View>
     </View>;
   }
 }
