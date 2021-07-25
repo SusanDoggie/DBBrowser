@@ -15,7 +15,6 @@ import ResultTable from './ResultTable';
 import storage from '../../utils/storage';
 
 import { withDatabase } from '../../utils/database';
-import { NIL } from 'uuid';
 
 class Home extends React.Component {
 
