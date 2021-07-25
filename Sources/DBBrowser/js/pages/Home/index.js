@@ -4,7 +4,7 @@ import { View, TextInput, Text, ScrollView, StyleSheet, TouchableWithoutFeedback
 import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommunityIcons';
 import { withRouter } from 'react-router';
 import { EJSON } from 'bson';
-import Url from 'url';
+import { URL } from 'url';
 
 import { Parser as SQLParser } from 'node-sql-parser';
 
@@ -15,6 +15,7 @@ import ResultTable from './ResultTable';
 import storage from '../../utils/storage';
 
 import { withDatabase } from '../../utils/database';
+import { NIL } from 'uuid';
 
 class Home extends React.Component {
 
@@ -95,15 +96,23 @@ class Home extends React.Component {
     this.setState({ counts });
   }
 
+  connectionUrl() {
+    try {
+      return new URL(this.state.connectionStr);
+    } catch (e) {
+      return;
+    }
+  }
+
   async loadRowCount(table) {
     
-    const url = Url.parse(this.state.connectionStr);
+    const url = this.connectionUrl();
 
     const database = this.props.database;
 
     let result;
 
-    switch (url.protocol) {
+    switch (url?.protocol) {
       case 'mysql:':
       case 'postgres:':
         
@@ -136,15 +145,21 @@ class Home extends React.Component {
     if (_.isString(_command.update)) {
       return { is_select: false, table: _command.update };
     }
+    if (_.isString(_command.create)) {
+      return { is_select: false, table: _command.create };
+    }
+    if (_.isString(_command.createIndexes)) {
+      return { is_select: false, table: _command.createIndexes };
+    }
   }
 
   parse_command(command) {
 
     try {
 
-      const url = Url.parse(this.state.connectionStr);
+      const url = this.connectionUrl();
 
-      if (url.protocol == 'mongodb:') {
+      if (url?.protocol == 'mongodb:') {
         return this.parse_mongo_command(command);
       }
 
@@ -154,7 +169,7 @@ class Home extends React.Component {
       }
   
       const parser = new SQLParser();
-      let ast = parser.astify(command, { database: database_map[url.protocol] });
+      let ast = parser.astify(command, { database: database_map[url?.protocol] });
 
       if (_.isArray(ast)) {
         ast = _.last(ast);
@@ -172,6 +187,7 @@ class Home extends React.Component {
 
         case 'insert':
         case 'update':
+        case 'create':
           
           if (_.isArray(ast?.table) && ast.table.length == 1) {
             return { is_select: false, table: ast.table[0].table };
@@ -195,10 +211,10 @@ class Home extends React.Component {
         return;
       }
 
-      const url = Url.parse(this.state.connectionStr);
+      const url = this.connectionUrl();
       const database = this.props.database;
 
-      if (url.protocol == 'mongodb:') {
+      if (url?.protocol == 'mongodb:') {
         _command = [_command];
       } else {
         _command = _command.split(';');
@@ -208,7 +224,7 @@ class Home extends React.Component {
       let currentTable;
 			let _run_command;
 			
-      if (url.protocol == 'mongodb:') {
+      if (url?.protocol == 'mongodb:') {
         _run_command = (command) => database.runMongoCommand(EJSON.parse(command, { relaxed: false }), { relaxed: false });
       } else {
         _run_command = (command) => database.runSQLCommand(command);
@@ -236,7 +252,7 @@ class Home extends React.Component {
 
         } else if (!is_select && _.isString(table) && table != this.parse_command(last_select_command)?.table) {
 
-          if (url.protocol == 'mongodb:') {
+          if (url?.protocol == 'mongodb:') {
             last_select_command = EJSON.stringify({ find: table, limit: 100 });
           } else {
             last_select_command = `SELECT * FROM ${table} LIMIT 100`;
@@ -269,13 +285,16 @@ class Home extends React.Component {
 
     try {
       
-      const url = Url.parse(this.state.connectionStr);
-      url.path = `/${name}`;
+      const url = this.connectionUrl();
+      if (!url) {
+        return;
+      }
+
       url.pathname = `/${name}`;
 
       await database.reconnect(name);
 
-      this.setState({ connectionStr: Url.format(url) }, () => this.loadData());
+      this.setState({ connectionStr: url.toString() }, () => this.loadData());
 
     } catch (e) {
 
@@ -285,7 +304,7 @@ class Home extends React.Component {
 
   async onPressTable(name) {
 
-    const url = Url.parse(this.state.connectionStr);
+    const url = this.connectionUrl();
 
     const last_select_table = this.parse_command(this.state.last_select_command)?.table;
 
@@ -297,7 +316,7 @@ class Home extends React.Component {
 
       let select_command;
   
-      if (url.protocol == 'mongodb:') {
+      if (url?.protocol == 'mongodb:') {
         select_command = EJSON.stringify({ find: name, limit: 100 });
       } else {
         select_command = `SELECT * FROM ${name} LIMIT 100`;
@@ -309,11 +328,11 @@ class Home extends React.Component {
 
   renderDashboard() {
 
-    const url = Url.parse(this.state.connectionStr);
+    const url = this.connectionUrl();
 
     let mode = null;
 
-    switch (url.protocol) {
+    switch (url?.protocol) {
       case 'mysql:': 
         mode = 'text/x-mysql';
         break;
@@ -401,7 +420,7 @@ class Home extends React.Component {
 
   renderLoginPanel() {
 
-    const url = Url.parse(this.state.connectionStr);
+    const url = this.connectionUrl();
 
     return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <View style={{
@@ -436,19 +455,31 @@ class Home extends React.Component {
           borderBottomColor: 'black',
           marginTop: 8,
         }}
-        value={url.protocol && url.host ? url.protocol+'//'+url.host : ''} />
+        value={url?.protocol && url?.host ? url?.protocol+'//'+url?.host : ''} />
 
       <Text style={{
         fontSize: 12,
         marginTop: 16,
-      }}>Auth</Text>
+      }}>Username</Text>
       <TextInput
         style={{ 
           borderBottomWidth: StyleSheet.hairlineWidth, 
           borderBottomColor: 'black',
           marginTop: 8,
         }}
-        value={url.auth ?? ''} />
+        value={url?.username ?? ''} />
+
+      <Text style={{
+        fontSize: 12,
+        marginTop: 16,
+      }}>Password</Text>
+      <TextInput
+        style={{ 
+          borderBottomWidth: StyleSheet.hairlineWidth, 
+          borderBottomColor: 'black',
+          marginTop: 8,
+        }}
+        value={url?.password ?? ''} />
 
       <Text style={{
         fontSize: 12,
@@ -460,7 +491,7 @@ class Home extends React.Component {
           borderBottomColor: 'black',
           marginTop: 8,
         }}
-        value={url.pathname?.split('/')[1] ?? ''} />
+        value={url?.pathname?.split('/')[1] ?? ''} />
 
       <RoundButton
         style={{
@@ -477,8 +508,8 @@ class Home extends React.Component {
 
     if (this.state.isConnected) {
 
-      const url = Url.parse(this.state.connectionStr);
-      const current_database = url.pathname?.split('/')[1];
+      const url = this.connectionUrl();
+      const current_database = url?.pathname?.split('/')[1];
 
       return <React.Fragment>
         <View>

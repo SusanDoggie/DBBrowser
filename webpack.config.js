@@ -87,7 +87,9 @@ module.exports = (env, argv) => {
 			],
 		},
 		plugins: [ 
-			new NodePolyfillPlugin(),
+			new NodePolyfillPlugin({
+				excludeAliases: ['url']
+			}),
 			new webpack.DefinePlugin({
 				'process.env': {
 					'NODE_ENV': IS_PRODUCTION ? '"production"' : 'undefined'
@@ -103,10 +105,11 @@ module.exports = (env, argv) => {
 		  ]
 		},
 		resolve: {
-		  alias: {
-			'react-native$': 'react-native-web'
-		  },
-		  extensions: ['.web.js', '.js']
+			alias: {
+				'react-native$': 'react-native-web',
+				'url': 'whatwg-url',
+			},
+			extensions: ['.web.js', '.js']
 		}
 	};
 	

@@ -1,3 +1,4 @@
+import './polyfill';
 import './font-inject';
 import React from 'react';
 import { AppRegistry } from 'react-native';
