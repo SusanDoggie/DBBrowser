@@ -420,6 +420,15 @@ class Home extends React.Component {
   renderLoginPanel() {
 
     const url = this.connectionUrl();
+    const _host = this.connectionUrl();
+
+    if (_host) {
+      _host.username = '';
+      _host.password = '';
+      _host.pathname = '';
+      _host.search = '';
+      _host.hash = '';
+    }
 
     return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <View style={{
@@ -454,7 +463,20 @@ class Home extends React.Component {
           borderBottomColor: 'black',
           marginTop: 8,
         }}
-        value={url?.protocol && url?.host ? url?.protocol+'//'+url?.host : ''} />
+        onChangeText={(host) => {
+          try {
+            const newUrl = new URL(host);
+            newUrl.username = url.username;
+            newUrl.password = url.password;
+            newUrl.pathname = url.pathname;
+            newUrl.search = url.search;
+            newUrl.hash = url.hash;
+            this.setConnectionStr(newUrl.toString());
+          } catch (e) {
+            return;
+          }
+        }}
+        value={_host?.toString() ?? ''} />
 
       <Text style={{
         fontSize: 12,
@@ -465,6 +487,15 @@ class Home extends React.Component {
           borderBottomWidth: StyleSheet.hairlineWidth, 
           borderBottomColor: 'black',
           marginTop: 8,
+        }}
+        onChangeText={(username) => {
+          try {
+            const newUrl = this.connectionUrl();
+            newUrl.username = username;
+            this.setConnectionStr(newUrl.toString());
+          } catch (e) {
+            return;
+          }
         }}
         value={url?.username ?? ''} />
 
@@ -478,6 +509,15 @@ class Home extends React.Component {
           borderBottomColor: 'black',
           marginTop: 8,
         }}
+        onChangeText={(password) => {
+          try {
+            const newUrl = this.connectionUrl();
+            newUrl.password = password;
+            this.setConnectionStr(newUrl.toString());
+          } catch (e) {
+            return;
+          }
+        }}
         value={url?.password ?? ''} />
 
       <Text style={{
@@ -489,6 +529,15 @@ class Home extends React.Component {
           borderBottomWidth: StyleSheet.hairlineWidth, 
           borderBottomColor: 'black',
           marginTop: 8,
+        }}
+        onChangeText={(pathname) => {
+          try {
+            const newUrl = this.connectionUrl();
+            newUrl.pathname = `/${pathname}`;
+            this.setConnectionStr(newUrl.toString());
+          } catch (e) {
+            return;
+          }
         }}
         value={url?.pathname?.split('/')[1] ?? ''} />
 
