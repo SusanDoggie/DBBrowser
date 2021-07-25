@@ -8,7 +8,6 @@ import Entypo from 'react-native-vector-icons/dist/Entypo';
 import { ResizableBox } from 'react-resizable';
 import storage from '../../utils/storage';
 
-import Button from '../../components/Button';
 import JsonCode from './JsonCode';
 
 class ValueViewer extends React.PureComponent {

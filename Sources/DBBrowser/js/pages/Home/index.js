@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import React from 'react';
-import { View, TextInput, Text, ScrollView, StyleSheet, TouchableWithoutFeedback } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommunityIcons';
+import { View, ScrollView } from 'react-native';
 import { withRouter } from 'react-router';
 import { EJSON } from 'bson';
 import { URL } from 'url';
@@ -10,9 +9,11 @@ import { Parser as SQLParser } from 'node-sql-parser';
 
 import CodeMirror from '../../components/CodeMirror';
 import Button from '../../components/Button';
-import RoundButton from '../../components/RoundButton';
+import SideMenu from './SideMenu';
+import LoginPanel from './LoginPanel';
 import ResultTable from './ResultTable';
 import storage from '../../utils/storage';
+import eventEmitter from '../../utils/eventEmitter';
 
 import { withDatabase } from '../../utils/database';
 
@@ -30,9 +31,6 @@ class Home extends React.Component {
       last_select_command: '',
       result: '',
       resultStyle: 'table',
-      databases: [],
-      tables: [],
-      counts: {},
     };
   }
 
@@ -40,10 +38,8 @@ class Home extends React.Component {
 
     this.autoConnect();
 
-    const database = this.props.database;
-  
-    database.addListener('WEBSOCKET_DID_OPENED', () => this.state.autoConnect && this.connect());
-    database.addListener('WEBSOCKET_DID_CLOSED', () => this.setState({ isConnected: false }));
+    eventEmitter.addListener('WEBSOCKET_DID_OPENED', () => this.state.autoConnect && this.connect());
+    eventEmitter.addListener('WEBSOCKET_DID_CLOSED', () => this.setState({ isConnected: false }));
   }
 
   async autoConnect() {
@@ -71,7 +67,7 @@ class Home extends React.Component {
       storage.setItem('connectionStr', this.state.connectionStr);
       storage.setItem('isConnected', true);
 
-      this.setState({ isConnected: true, autoConnect: false, databases: [], tables: [] }, () => this.loadData());
+      this.setState({ isConnected: true, autoConnect: false, databases: [], tables: [] });
 
     } catch (e) {
 
@@ -79,49 +75,11 @@ class Home extends React.Component {
     }
   }
 
-  async loadData() {
-    
-    const databases = await this.props.database.databases();
-    const tables = await this.props.database.tables();
-
-    databases.sort();
-    tables.sort();
-
-    this.setState({ databases, tables });
-
-    const counts = {};
-    await Promise.all(tables.map(async (x) => counts[x] = await this.loadRowCount(x)));
-
-    this.setState({ counts });
-  }
-
   connectionUrl() {
     try {
       return new URL(this.state.connectionStr);
     } catch (e) {
       return;
-    }
-  }
-
-  async loadRowCount(table) {
-    
-    const url = this.connectionUrl();
-
-    const database = this.props.database;
-
-    let result;
-
-    switch (url?.protocol) {
-      case 'mysql:':
-      case 'postgres:':
-        
-        result = await database.runSQLCommand(`SELECT COUNT(*) AS count FROM ${table}`);
-        return result[0].count;
-
-      case 'mongodb:': 
-
-        result = await database.runMongoCommand({ count: table });
-        return result.n;
     }
   }
 
@@ -272,13 +230,11 @@ class Home extends React.Component {
   }
 
   setConnectionStr(connectionStr) {
-
     this.setState({ connectionStr, autoConnect: false });
-
     storage.setItem('connectionStr', connectionStr);
   }
 
-  async onPressDatabase(name) {
+  async onDatabaseSelected(name) {
 
     const database = this.props.database;
 
@@ -293,7 +249,7 @@ class Home extends React.Component {
 
       await database.reconnect(name);
 
-      this.setState({ connectionStr: url.toString() }, () => this.loadData());
+      this.setState({ connectionStr: url.toString() });
 
     } catch (e) {
 
@@ -301,7 +257,7 @@ class Home extends React.Component {
     }
   }
 
-  async onPressTable(name) {
+  async onTableSelected(name) {
 
     const url = this.connectionUrl();
 
@@ -417,198 +373,6 @@ class Home extends React.Component {
     </View>;
   }
 
-  renderLoginPanel() {
-
-    const url = this.connectionUrl();
-    const _host = this.connectionUrl();
-
-    if (_host) {
-      _host.username = '';
-      _host.password = '';
-      _host.pathname = '';
-      _host.search = '';
-      _host.hash = '';
-    }
-
-    return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{
-        width: 512,
-        padding: 16,
-			  borderRadius: 16,
-			  overflow: 'hidden',
-			  alignItems: 'stretch',
-			  justifyContent: 'center',
-        backgroundColor: 'white',
-      }}>
-
-      <Text style={{
-        fontSize: 12,
-      }}>Connection String</Text>
-      <TextInput
-        style={{ 
-          borderBottomWidth: StyleSheet.hairlineWidth, 
-          borderBottomColor: 'black',
-          marginTop: 8,
-        }}
-        onChangeText={(connectionStr) => this.setConnectionStr(connectionStr)}
-        value={this.state.connectionStr} />
-
-      <Text style={{
-        fontSize: 12,
-        marginTop: 16,
-      }}>Host</Text>
-      <TextInput
-        style={{ 
-          borderBottomWidth: StyleSheet.hairlineWidth, 
-          borderBottomColor: 'black',
-          marginTop: 8,
-        }}
-        onChangeText={(host) => {
-          try {
-            const newUrl = new URL(host);
-            newUrl.username = url.username;
-            newUrl.password = url.password;
-            newUrl.pathname = url.pathname;
-            newUrl.search = url.search;
-            newUrl.hash = url.hash;
-            this.setConnectionStr(newUrl.toString());
-          } catch (e) {
-            return;
-          }
-        }}
-        value={_host?.toString() ?? ''} />
-
-      <Text style={{
-        fontSize: 12,
-        marginTop: 16,
-      }}>Username</Text>
-      <TextInput
-        style={{ 
-          borderBottomWidth: StyleSheet.hairlineWidth, 
-          borderBottomColor: 'black',
-          marginTop: 8,
-        }}
-        onChangeText={(username) => {
-          try {
-            const newUrl = this.connectionUrl();
-            newUrl.username = username;
-            this.setConnectionStr(newUrl.toString());
-          } catch (e) {
-            return;
-          }
-        }}
-        value={url?.username ?? ''} />
-
-      <Text style={{
-        fontSize: 12,
-        marginTop: 16,
-      }}>Password</Text>
-      <TextInput
-        style={{ 
-          borderBottomWidth: StyleSheet.hairlineWidth, 
-          borderBottomColor: 'black',
-          marginTop: 8,
-        }}
-        onChangeText={(password) => {
-          try {
-            const newUrl = this.connectionUrl();
-            newUrl.password = password;
-            this.setConnectionStr(newUrl.toString());
-          } catch (e) {
-            return;
-          }
-        }}
-        value={url?.password ?? ''} />
-
-      <Text style={{
-        fontSize: 12,
-        marginTop: 16,
-      }}>Database</Text>
-      <TextInput
-        style={{ 
-          borderBottomWidth: StyleSheet.hairlineWidth, 
-          borderBottomColor: 'black',
-          marginTop: 8,
-        }}
-        onChangeText={(pathname) => {
-          try {
-            const newUrl = this.connectionUrl();
-            newUrl.pathname = `/${pathname}`;
-            this.setConnectionStr(newUrl.toString());
-          } catch (e) {
-            return;
-          }
-        }}
-        value={url?.pathname?.split('/')[1] ?? ''} />
-
-      <RoundButton
-        style={{
-          marginTop: 16,
-          alignSelf: 'center',
-        }}
-        title='Connect'
-        onPress={() => this.connect()} />
-      </View>
-    </View>;
-  }
-
-  renderSideMenu() {
-
-    if (this.state.isConnected) {
-
-      const url = this.connectionUrl();
-      const current_database = url?.pathname?.split('/')[1];
-
-      return <React.Fragment>
-        <View>
-          <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: 'white', fontFamily: 'monospace', fontWeight: '600' }}>DATABASES</Text>
-            <TouchableWithoutFeedback onPress={() => this.loadData()}>
-              <MaterialCommunityIcons name='reload' size={18} color='white' />
-            </TouchableWithoutFeedback>
-          </View>
-          {this.state.databases?.map(name => <View style={{ marginHorizontal: 16, marginVertical: 8, alignItems: 'stretch' }}>
-            <Button 
-              title={name} 
-              style={{
-                padding: 0,
-                borderRadius: null,
-                backgroundColor: null,
-                alignItems: 'stretch',
-              }}
-              onPress={() => this.onPressDatabase(name)}
-              render={({isHover}) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ flex: 1, color: 'white', opacity: isHover || current_database == name ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
-              </View>} />
-            </View>)}
-        </View>
-        <View>
-          <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: 'white', fontFamily: 'monospace', fontWeight: '600' }}>TABLES</Text>
-            <TouchableWithoutFeedback onPress={() => this.loadData()}>
-              <MaterialCommunityIcons name='reload' size={18} color='white' />
-            </TouchableWithoutFeedback>
-          </View>
-          {this.state.tables?.map(name => <View style={{ marginHorizontal: 16, marginVertical: 8, alignItems: 'stretch' }}>
-            <Button 
-              title={name} 
-              style={{
-                padding: 0,
-                borderRadius: null,
-                backgroundColor: null,
-                alignItems: 'stretch',
-              }}
-              onPress={() => this.onPressTable(name)}
-              render={({isHover}) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ flex: 1, color: 'white', opacity: isHover || this.state.currentTable == name ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
-                <Text style={{ color: 'white', opacity: isHover || this.state.currentTable == name ? 1 : 0.4, marginLeft: 8 }}>{this.state.counts[name]}</Text>
-              </View>} />
-            </View>)}
-        </View>
-      </React.Fragment>;
-    }
-  }
-  
   render() {
 
     return <View style={{ 
@@ -618,10 +382,20 @@ class Home extends React.Component {
       background: 'snow',
     }}>
       <View style={{ width: 240, background: '#2F4F4F' }}>
-        <ScrollView>{this.renderSideMenu()}</ScrollView>
+        <ScrollView>
+          <SideMenu
+            currentTable={this.state.currentTable}
+            connectionStr={this.state.connectionStr}
+            isConnected={this.state.isConnected}
+            onDatabaseSelected={(name) => this.onDatabaseSelected(name)}
+            onTableSelected={(name) => this.onTableSelected(name)} />
+        </ScrollView>
       </View>
       <View style={{ flex: 1 }}>
-        {this.state.isConnected ? this.renderDashboard() : this.renderLoginPanel()}
+        {this.state.isConnected ? this.renderDashboard() : <LoginPanel
+          connectionStr={this.state.connectionStr}
+          setConnectionStr={(connectionStr) => this.setConnectionStr(connectionStr)}
+          connect={() => this.connect()} />}
       </View>
     </View>;
   }

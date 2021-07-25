@@ -191,13 +191,70 @@ extension WebSocketController {
                 
                 connection.mongoQuery().collections().execute()
                     .flatMap { $0.toArray() }
-                    .map { $0.map { $0.name } }
+                    .map { $0.compactMap { $0.type == .collection ? $0.name : nil } }
                     .whenComplete {
                         switch $0 {
                         case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
                         case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
                         }
                     }
+                
+            default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
+            }
+            
+        case "views":
+            
+            switch session.type {
+            case .sql:
+                
+                guard let connection = session.connection as? DBSQLConnection else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                    return
+                }
+                
+                connection.views().whenComplete {
+                    switch $0 {
+                    case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
+                    case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                    }
+                }
+                
+            case .mongo:
+                
+                guard let connection = session.connection else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                    return
+                }
+                
+                connection.mongoQuery().collections().execute()
+                    .flatMap { $0.toArray() }
+                    .map { $0.compactMap { $0.type == .view ? $0.name : nil } }
+                    .whenComplete {
+                        switch $0 {
+                        case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
+                        case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                        }
+                    }
+                
+            default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
+            }
+            
+        case "materializedViews":
+            
+            switch session.type {
+            case .sql:
+                
+                guard let connection = session.connection as? DBSQLConnection else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                    return
+                }
+                
+                connection.materializedViews().whenComplete {
+                    switch $0 {
+                    case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
+                    case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                    }
+                }
                 
             default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
             }

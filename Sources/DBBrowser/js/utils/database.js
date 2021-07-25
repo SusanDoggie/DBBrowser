@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { EJSON, serialize, Binary } from 'bson';
-import { EventEmitter } from 'events';
+import eventEmitter from './eventEmitter';
 
 function createSocket() {
 	if (_.isNil(global.WebSocket) || _.isNil(global.location)) return;
@@ -14,7 +14,6 @@ function createDatabase() {
 	const socket = createSocket();
 	if (!socket) return;
 	
-	const eventEmitter = new EventEmitter();
 	const callbacks = {};
 	
 	let isopen = false;
@@ -55,11 +54,6 @@ function createDatabase() {
 			return socket_run({ action: 'reconnect', database });
 		}
 
-		addListener(event, listener) {
-			eventEmitter.addListener(event, listener);
-			return { remove: () => { eventEmitter.removeListener(event, listener) } };	
-		}
-		
 		databases() {
 			return socket_run({ action: 'databases' });
 		}
