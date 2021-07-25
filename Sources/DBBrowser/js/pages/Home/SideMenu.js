@@ -18,6 +18,8 @@ class SideMenu extends React.Component {
       token: uuidv4(),
       databases: [],
       tables: [],
+      views: [],
+      materializedViews: [],
       counts: {},
     };
   }
@@ -40,14 +42,22 @@ class SideMenu extends React.Component {
 
     const databases = await this.props.database.databases();
     const tables = await this.props.database.tables();
+    const views = await this.props.database.views();
+    const materializedViews = this.isMaterializedViews() ? await this.props.database.materializedViews() : [];
 
     databases.sort();
     tables.sort();
+    views.sort();
+    materializedViews.sort();
 
-    this.setState({ databases, tables });
+    this.setState({ databases, tables, views, materializedViews });
 
     const counts = {};
-    await Promise.all(tables.map(async (x) => counts[x] = await this.loadRowCount(x)));
+    await Promise.all([
+      Promise.all(tables.map(async (x) => counts[x] = await this.loadRowCount(x))),
+      Promise.all(views.map(async (x) => counts[x] = await this.loadRowCount(x))),
+      Promise.all(materializedViews.map(async (x) => counts[x] = await this.loadRowCount(x))),
+    ])
 
     this.setState({ counts });
   }
@@ -72,6 +82,16 @@ class SideMenu extends React.Component {
         result = await database.runMongoCommand({ count: table });
         return result.n;
     }
+  }
+
+  isMaterializedViews() {
+
+    const url = this.connectionUrl();
+    
+    const isMaterializedViewsMap = {
+      'postgres:': true,
+    }
+    return isMaterializedViewsMap[url?.protocol] ?? false;
   }
 
   connectionUrl() {
@@ -135,6 +155,52 @@ class SideMenu extends React.Component {
             </View>} />
           </View>)}
       </View>
+      <View>
+        <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={{ color: 'white', fontFamily: 'monospace', fontWeight: '600' }}>VIEWS</Text>
+          <TouchableWithoutFeedback onPress={() => this.loadData()}>
+            <MaterialCommunityIcons name='reload' size={18} color='white' />
+          </TouchableWithoutFeedback>
+        </View>
+        {this.state.views?.map(name => <View  key={`${this.state.token}-view-${name}`}style={{ marginHorizontal: 16, marginVertical: 8, alignItems: 'stretch' }}>
+          <Button 
+            title={name} 
+            style={{
+              padding: 0,
+              borderRadius: null,
+              backgroundColor: null,
+              alignItems: 'stretch',
+            }}
+            onPress={() => this.props.onTableSelected(name)}
+            render={({isHover}) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ flex: 1, color: 'white', opacity: isHover || this.props.currentTable == name ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
+              <Text style={{ color: 'white', opacity: isHover || this.props.currentTable == name ? 1 : 0.4, marginLeft: 8 }}>{this.state.counts[name]}</Text>
+            </View>} />
+          </View>)}
+      </View>
+      {this.isMaterializedViews() && <View>
+        <View style={{ flexDirection: 'row', margin: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={{ color: 'white', fontFamily: 'monospace', fontWeight: '600' }}>MATERIALIZED VIEWS</Text>
+          <TouchableWithoutFeedback onPress={() => this.loadData()}>
+            <MaterialCommunityIcons name='reload' size={18} color='white' />
+          </TouchableWithoutFeedback>
+        </View>
+        {this.state.materializedViews?.map(name => <View  key={`${this.state.token}-materialized-view-${name}`}style={{ marginHorizontal: 16, marginVertical: 8, alignItems: 'stretch' }}>
+          <Button 
+            title={name} 
+            style={{
+              padding: 0,
+              borderRadius: null,
+              backgroundColor: null,
+              alignItems: 'stretch',
+            }}
+            onPress={() => this.props.onTableSelected(name)}
+            render={({isHover}) => <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ flex: 1, color: 'white', opacity: isHover || this.props.currentTable == name ? 1 : 0.4 }} ellipsizeMode='tail' numberOfLines={1}>{name}</Text>
+              <Text style={{ color: 'white', opacity: isHover || this.props.currentTable == name ? 1 : 0.4, marginLeft: 8 }}>{this.state.counts[name]}</Text>
+            </View>} />
+          </View>)}
+      </View>}
     </React.Fragment>;
   }
 }

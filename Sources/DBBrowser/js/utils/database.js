@@ -62,6 +62,14 @@ function createDatabase() {
 			return socket_run({ action: 'tables' });
 		}
 		
+		views() {
+			return socket_run({ action: 'views' });
+		}
+		
+		materializedViews() {
+			return socket_run({ action: 'materializedViews' });
+		}
+		
 		runSQLCommand(sql, options) {
 			return socket_run({ action: 'runCommand', command: sql }, options);
 		}

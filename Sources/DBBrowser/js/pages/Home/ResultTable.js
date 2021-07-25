@@ -146,6 +146,7 @@ class DataSheetHeader extends React.PureComponent {
                 </div>}
               resizeHandles={['e']}
               width={this.state.columnSetting[col]?.width ?? 96}
+              height={24}
               onResize={(e, {size}) => this.updateColumnSetting({ ...this.state.columnSetting, [col]: { width: size.width } })}>
               <View style={{ flexDirection: 'row', padding: 4, paddingRight: 16, alignItems: 'center' }}>
                 <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{col}</Text>
