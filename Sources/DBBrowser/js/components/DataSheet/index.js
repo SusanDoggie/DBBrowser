@@ -298,18 +298,7 @@ export default class DataSheet extends React.PureComponent {
 			e.preventDefault();
 			
 			const selected_rows = this.state.selected_rows.sort();
-			const data = [];
-
-			for (const row of selected_rows.map(x => this.props.data[x])) {
-
-				const _data = {};
-
-				for (let column = 0; column <= this.props.columns.length; column++) {
-					_data[this.props.columns[column]] = row[column];
-				}
-
-				data.push(_data);
-			}
+			const data = selected_rows.map(row => Object.fromEntries(this.props.columns.map((col, i) => [col, this.props.data[row][i]])));
 			
 			if (this.props.handleCopyRows) {
 
@@ -335,19 +324,10 @@ export default class DataSheet extends React.PureComponent {
 			const min_col = Math.min(start_col, end_col);
 			const max_col = Math.max(start_col, end_col);
 	
-			const data = [];
+			const _rows = _.range(min_row, max_row + 1);
+			const _cols = _.range(min_col, max_col + 1);
+			const data = _rows.map(row => Object.fromEntries(_cols.map(col => [this.props.columns[col], this.props.data[row][col]])))
 
-			for (let row = min_row; row <= max_row; row++) {
-
-				const _data = {};
-
-				for (let column = min_col; column <= max_col; column++) {
-					_data[this.props.columns[column]] = this.props.data[row][column];
-				}
-
-				data.push(_data);
-			}
-			
 			if (this.props.handleCopyCells) {
 
 				this.props.handleCopyCells({ start_row, start_col, end_row, end_col }, data);
