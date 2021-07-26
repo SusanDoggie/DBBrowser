@@ -12,7 +12,8 @@ export default class DataSheet extends React.PureComponent {
 		super(props);
 
 		this.onMouseUp = this.onMouseUp.bind(this);
-	
+		this.pageClick = this.pageClick.bind(this);
+
 		this.state = {
 			editing: null,
 			selecting_rows: null,
@@ -23,6 +24,15 @@ export default class DataSheet extends React.PureComponent {
 			metaKey: false,
 			token: uuidv4(),
 		};
+	}
+
+	componentDidMount() {
+		document.addEventListener('mousedown', this.pageClick);
+	}
+
+	componentWillUnmount() {
+		document.removeEventListener('mousedown', this.pageClick);
+		document.removeEventListener('mouseup', this.onMouseUp);
 	}
 
 	_current_selected_rows(e) {
@@ -117,6 +127,23 @@ export default class DataSheet extends React.PureComponent {
 
 		this.setState({ selecting_cells: { ...this.state.selecting_cells, end_row: row, end_col: col } });
 	}
+
+	pageClick(e) {
+
+		if (!_.isEmpty(this.state.selected_rows) || !_.isEmpty(this.state.selected_cells)) {
+
+			let node = e.target;
+
+			while (node !== document) {
+				if (node === this.tableRef) {
+					return;
+				}
+				node = node.parentNode;
+			}
+
+			this.setState({ selecting_rows: null, selected_rows: [], selecting_cells: null, selected_cells: null });
+		}
+	}
   
 	handleCellDoubleClick(e, row, col) {
 		console.log(e);
@@ -145,6 +172,7 @@ export default class DataSheet extends React.PureComponent {
 		const is_cell_selected = (row, col) => selected_cells && is_cell_bound(selected_cells, row, col);
 	
 		return <table
+				ref={x => this.tableRef = x}
 				style={{ 
 					borderCollapse: 'collapse',
 					userSelect: 'none',
