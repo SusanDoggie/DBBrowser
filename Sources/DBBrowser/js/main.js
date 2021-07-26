@@ -6,7 +6,6 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
 import 'codemirror/lib/codemirror.css';
-import 'react-datasheet/lib/react-datasheet.css';
 import './default.css';
 
 import 'codemirror/mode/sql/sql';
