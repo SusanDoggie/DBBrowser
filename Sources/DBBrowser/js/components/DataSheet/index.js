@@ -13,6 +13,9 @@ export default class DataSheet extends React.PureComponent {
 
 		this.onMouseUp = this.onMouseUp.bind(this);
 		this.pageClick = this.pageClick.bind(this);
+		this.handleKey = this.handleKey.bind(this);
+		this.handleCopy = this.handleCopy.bind(this);
+		this.handlePaste = this.handlePaste.bind(this);
 
 		this.state = {
 			editing: null,
@@ -28,11 +31,17 @@ export default class DataSheet extends React.PureComponent {
 
 	componentDidMount() {
 		document.addEventListener('mousedown', this.pageClick);
+		document.addEventListener('keydown', this.handleKey);
+		document.addEventListener('copy', this.handleCopy);
+		document.addEventListener('paste', this.handlePaste);
 	}
 
 	componentWillUnmount() {
 		document.removeEventListener('mousedown', this.pageClick);
 		document.removeEventListener('mouseup', this.onMouseUp);
+		document.removeEventListener('keydown', this.handleKey);
+		document.removeEventListener('copy', this.handleCopy);
+		document.removeEventListener('paste', this.handlePaste);
 	}
 
 	_current_selected_rows(e) {
@@ -127,6 +136,10 @@ export default class DataSheet extends React.PureComponent {
 
 		this.setState({ selecting_cells: { ...this.state.selecting_cells, end_row: row, end_col: col } });
 	}
+  
+	handleCellDoubleClick(e, row, col) {
+		console.log(e);
+	}
 
 	pageClick(e) {
 
@@ -144,18 +157,93 @@ export default class DataSheet extends React.PureComponent {
 			this.setState({ selecting_rows: null, selected_rows: [], selecting_cells: null, selected_cells: null });
 		}
 	}
-  
-	handleCellDoubleClick(e, row, col) {
-		console.log(e);
+
+	handleKey(e) {
+
+		if (e.ctrlKey) {
+			if (e.keyCode === 67) {
+			  this.handleCopy(e);
+			} else if (e.keyCode === 86 || e.which === 86) {
+			  this.handlePaste(e);
+			}
+		}
+
+		if (e.keyCode === 8 || e.keyCode === 46) {
+			this.handleDelete(e);
+		}
+	}
+
+	handleDelete(e) {
+
+		if (!_.isEmpty(this.state.editing)) return;
+
+		if (!_.isEmpty(this.state.selected_rows)) {
+
+			e.preventDefault();
+			
+			if (this.props.handleDeleteRows) {
+				this.props.handleDeleteRows(this.state.selected_rows.sort());
+			}
+		}
+
+		if (!_.isEmpty(this.state.selected_cells)) {
+
+			e.preventDefault();
+			
+			if (this.props.handleDeleteCells) {
+				this.props.handleDeleteCells(this.state.selected_cells);
+			}
+		}
+	}
+
+	handleCopy(e) {
+
+		if (!_.isEmpty(this.state.editing)) return;
+
+		if (!_.isEmpty(this.state.selected_rows)) {
+
+			e.preventDefault();
+			
+			if (this.props.handleCopyRows) {
+				this.props.handleCopyRows(this.state.selected_rows.sort());
+			}
+		}
+
+		if (!_.isEmpty(this.state.selected_cells)) {
+
+			e.preventDefault();
+			
+			if (this.props.handleCopyCells) {
+				this.props.handleCopyCells(this.state.selected_cells);
+			}
+		}
+	}
+
+	handlePaste(e) {
+
+		if (!_.isEmpty(this.state.editing)) return;
+
+		if (!_.isEmpty(this.state.selected_rows)) {
+
+			e.preventDefault();
+			
+			if (this.props.handlePasteRows) {
+				this.props.handlePasteRows(this.state.selected_rows.sort());
+			}
+		}
+
+		if (!_.isEmpty(this.state.selected_cells)) {
+
+			e.preventDefault();
+			
+			if (this.props.handlePasteCells) {
+				this.props.handlePasteCells(this.state.selected_cells);
+			}
+		}
 	}
   
 	render() {
 	
-		const { 
-			data,
-			...props 
-		} = this.props;
-
 		const selected_rows = _.isEmpty(this.state.selecting_cells) ? this._current_selected_rows(this.state) : [];
 		const selected_cells = _.isEmpty(this.state.selecting_rows) ? this.state.selecting_cells ?? this.state.selected_cells : null;
 		
@@ -182,7 +270,7 @@ export default class DataSheet extends React.PureComponent {
 				}}>
 			<DataSheetHeader {...this.props} />
 			<tbody style={{ backgroundColor: 'white' }}>
-			{data.map((rows, row) => <tr key={`${this.state.token}-row-${row}`} style={{ backgroundColor: row % 2 == 0 ? 'white' : '#F6F8FF' }}>
+			{this.props.data.map((rows, row) => <tr key={`${this.state.token}-row-${row}`} style={{ backgroundColor: row % 2 == 0 ? 'white' : '#F6F8FF' }}>
 				<td 
 					onMouseDown={(e) => this.handleRowMouseDown(e, row)}
 					onMouseOver={(e) => this.handleRowMouseOver(e, row)}
