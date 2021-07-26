@@ -26,7 +26,7 @@ function _encode_data(value) {
     }
     
     if (_.isDate(value)) {
-      return value.toLocaleString('en', { timeZoneName: 'short' });
+      return value.toLocaleString();
     }
 
     if (_.isString(value)) {
