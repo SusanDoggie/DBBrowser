@@ -2,9 +2,93 @@ import _ from 'lodash';
 import React from 'react';
 import { View, Text } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
+import { EJSON } from 'bson';
 
 import DataSheetHeader from './DataSheetHeader';
 import ValueViewer from './ValueViewer';
+
+function _encode_data(value) {
+    
+    if (_.isNull(value)) {
+      return 'null';
+    }
+    
+    if (_.isUndefined(value)) {
+      return 'undefined';
+    }
+    
+    if (_.isBoolean(value)) {
+      return `${value}`;
+    }
+    
+    if (_.isNumber(value)) {
+      return `${value}`;
+    }
+    
+    if (_.isDate(value)) {
+      return value.toLocaleString('en', { timeZoneName: 'short' });
+    }
+
+    if (_.isString(value)) {
+      return value;
+    }
+
+    switch (value._bsontype) {
+
+      case 'Binary':
+
+      switch (value.sub_type) {
+
+        case Binary.SUBTYPE_UUID:
+
+          let uuid = new UUID(value.buffer);
+          return uuid.toHexString(true);
+
+        case Binary.SUBTYPE_MD5:
+
+          return value.buffer.toString('hex');
+  
+        default: return value.buffer.toString('base64');
+      }
+
+      case 'BSONRegExp':
+
+        return `/${value.pattern}/${value.options}`;
+
+      case 'Symbol':
+
+        return value.valueOf();
+
+      case 'Double':
+      case 'Int32':
+
+        return value.valueOf();
+
+      case 'Decimal128':
+      case 'Long':
+
+        return value.toString();
+
+      case 'MaxKey':
+
+        return 'MaxKey';
+
+      case 'MinKey':
+
+        return 'MinKey';
+
+      case 'ObjectId':
+      case 'ObjectID':
+
+        return value.toHexString();
+
+      case 'UUID':
+
+        return value.toHexString(true);
+
+      default: return EJSON.stringify(value);
+    }
+}
 
 export default class DataSheet extends React.PureComponent {
 
@@ -50,8 +134,8 @@ export default class DataSheet extends React.PureComponent {
 			return this.state.selected_rows;
 		}
 
-		let min_row = Math.min(this.state.selecting_rows.start_row, this.state.selecting_rows.end_row);
-		let max_row = Math.max(this.state.selecting_rows.start_row, this.state.selecting_rows.end_row);
+		const min_row = Math.min(this.state.selecting_rows.start_row, this.state.selecting_rows.end_row);
+		const max_row = Math.max(this.state.selecting_rows.start_row, this.state.selecting_rows.end_row);
 
 		if (e.shiftKey) {
 
@@ -196,6 +280,15 @@ export default class DataSheet extends React.PureComponent {
 		}
 	}
 
+	encodeData(value) {
+
+		if (this.props.encodeData) {
+			return this.props.encodeData(value);
+		}
+
+		return `${_encode_data(value)}`.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\r/g, '\\r');
+	}
+
 	handleCopy(e) {
 
 		if (!_.isEmpty(this.state.editing)) return;
@@ -204,8 +297,30 @@ export default class DataSheet extends React.PureComponent {
 
 			e.preventDefault();
 			
+			const selected_rows = this.state.selected_rows.sort();
+			const data = [];
+
+			for (const row of selected_rows.map(x => this.props.data[x])) {
+
+				const _data = {};
+
+				for (let column = 0; column <= this.props.columns.length; column++) {
+					_data[this.props.columns[column]] = row[column];
+				}
+
+				data.push(_data);
+			}
+			
 			if (this.props.handleCopyRows) {
-				this.props.handleCopyRows(this.state.selected_rows.sort());
+
+				this.props.handleCopyRows(selected_rows, data);
+
+			} else {
+
+				e.clipboardData.setData('application/json', EJSON.stringify(data));
+				
+				const text = data.map(x => Object.values(x).map(x => this.encodeData(x)).join('\t')).join('\n');
+				e.clipboardData.setData('text/plain', text);
 			}
 		}
 
@@ -213,8 +328,36 @@ export default class DataSheet extends React.PureComponent {
 
 			e.preventDefault();
 			
+			const { start_row, start_col, end_row, end_col } = this.state.selected_cells;
+
+			const min_row = Math.min(start_row, end_row);
+			const max_row = Math.max(start_row, end_row);
+			const min_col = Math.min(start_col, end_col);
+			const max_col = Math.max(start_col, end_col);
+	
+			const data = [];
+
+			for (let row = min_row; row <= max_row; row++) {
+
+				const _data = {};
+
+				for (let column = min_col; column <= max_col; column++) {
+					_data[this.props.columns[column]] = this.props.data[row][column];
+				}
+
+				data.push(_data);
+			}
+			
 			if (this.props.handleCopyCells) {
-				this.props.handleCopyCells(this.state.selected_cells);
+
+				this.props.handleCopyCells({ start_row, start_col, end_row, end_col }, data);
+
+			} else {
+				
+				e.clipboardData.setData('application/json', EJSON.stringify(data));
+				
+				const text = data.map(x => Object.values(x).map(x => this.encodeData(x)).join('\t')).join('\n');
+				e.clipboardData.setData('text/plain', text);
 			}
 		}
 	}
