@@ -1,9 +1,10 @@
 import _ from 'lodash';
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
 import { withRouter } from 'react-router';
 import { EJSON } from 'bson';
 import { URL } from 'url';
+import { saveAs } from 'file-saver';
 
 import { Parser as SQLParser } from 'node-sql-parser';
 
@@ -281,6 +282,22 @@ class Home extends React.Component {
     }
   }
 
+  saveFile() {
+    
+    if (_.isEmpty(this.state.result)) return;
+
+    if (_.isArray(this.state.result) && this.state.resultStyle == 'table')  {
+
+
+
+    } else {
+
+      const file = EJSON.stringify(this.state.result);
+      const blob = new Blob([file], { type: 'application/json' });
+      saveAs(blob, _.isEmpty(this.state.currentTable) ? 'file.json' : `${this.state.currentTable}.json`);
+    }
+  }
+
   renderDashboard() {
 
     const url = this.connectionUrl();
@@ -301,39 +318,76 @@ class Home extends React.Component {
 
     return <View style={{ flex: 1 }}>
       <View style={{ 
-        padding: 4,
-        flexDirection: 'row', 
         background: '#2F4F4F',
         alignItems: 'stretch',
       }}>
-        {_.isArray(this.state.result) && <Button 
-          icon='FontAwesome' 
-          iconStyle={{ 
-            name: 'table',
-            size: 18,
-          }} 
-          style={{
-            padding: 0,
-            borderRadius: null,
-            backgroundColor: null,
-            marginHorizontal: 4,
-            aspectRatio: 1,
-          }}
-          onPress={() => this.setState({ resultStyle: 'table' })} />}
-        <Button
-          icon='MaterialCommunityIcons' 
-          iconStyle={{ 
-            name: 'code-json',
-            size: 18,
-          }} 
-          style={{
-            padding: 0,
-            borderRadius: null,
-            backgroundColor: null,
-            marginHorizontal: 4,
-            aspectRatio: 1,
-          }}
-          onPress={() => this.setState({ resultStyle: 'raw' })} />
+        <View style={{ 
+          padding: 8,
+          height: 64,
+          flexDirection: 'row', 
+          alignItems: 'flex-end',
+        }}>
+          <Text style={{ color: 'white', fontSize: 24 }}>{this.state.currentTable}</Text>
+        </View>
+        <View style={{ 
+          padding: 4,
+          flexDirection: 'row', 
+          alignItems: 'stretch',
+          justifyContent: 'space-between',
+        }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            alignItems: 'stretch',
+          }}>
+            {_.isArray(this.state.result) && <Button 
+              icon='FontAwesome' 
+              iconStyle={{ 
+                name: 'table',
+                size: 18,
+              }} 
+              style={{
+                padding: 0,
+                borderRadius: null,
+                backgroundColor: null,
+                marginHorizontal: 4,
+                aspectRatio: 1,
+              }}
+              onPress={() => this.setState({ resultStyle: 'table' })} />}
+            <Button
+              icon='MaterialCommunityIcons' 
+              iconStyle={{ 
+                name: 'code-json',
+                size: 18,
+              }} 
+              style={{
+                padding: 0,
+                borderRadius: null,
+                backgroundColor: null,
+                marginHorizontal: 4,
+                aspectRatio: 1,
+              }}
+              onPress={() => this.setState({ resultStyle: 'raw' })} />
+          </View>
+          <View style={{ 
+            flexDirection: 'row', 
+            alignItems: 'stretch',
+          }}>
+            <Button
+              icon='Feather' 
+              iconStyle={{ 
+                name: 'download',
+                size: 18,
+              }} 
+              style={{
+                padding: 0,
+                borderRadius: null,
+                backgroundColor: null,
+                marginHorizontal: 4,
+                aspectRatio: 1,
+              }}
+              onPress={() => this.saveFile()} />
+          </View>
+        </View>
       </View>
       <ResultTable 
         style={{ flex: 1 }} 

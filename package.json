@@ -32,6 +32,7 @@
     "@babel/plugin-transform-runtime": "^7.13.10",
     "@loadable/component": "^5.14.1",
     "bson": "^4.4.0",
+    "file-saver": "^2.0.5",
     "lodash": "^4.17.21",
     "node-sql-parser": "^3.6.1",
     "polyfill-crypto.getrandomvalues": "^1.0.0",
