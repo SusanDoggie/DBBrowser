@@ -18,7 +18,7 @@ export default class DataSheet extends React.PureComponent {
 			selecting_rows: null,
 			selected_rows: [],
 			selecting_cells: null,
-			selected_cells: {},
+			selected_cells: null,
 			shiftKey: false,
 			metaKey: false,
 			token: uuidv4(),
@@ -129,10 +129,10 @@ export default class DataSheet extends React.PureComponent {
 			...props 
 		} = this.props;
 
-		const selecting_rows = this._current_selected_rows(this.state);
-		const selected_cells = this.state.selecting_cells ?? this.state.selected_cells;
+		const selected_rows = _.isEmpty(this.state.selecting_cells) ? this._current_selected_rows(this.state) : [];
+		const selected_cells = _.isEmpty(this.state.selecting_rows) ? this.state.selecting_cells ?? this.state.selected_cells : null;
 		
-		const is_row_selected = (row) => selecting_rows.includes(row);
+		const is_row_selected = (row) => selected_rows.includes(row);
 	
 		const is_cell_bound = (select, row, col) => {
 			const min_row = Math.min(select.start_row, select.end_row);
