@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import React from 'react';
-import { View, ScrollView, Text } from 'react-native';
+import { View, ScrollView, Text, Dimensions } from 'react-native';
 import { withRouter } from 'react-router';
 import { EJSON } from 'bson';
 import { URL } from 'url';
@@ -21,6 +21,69 @@ import { withDatabase } from '../../utils/database';
 import _encode_data from '../../components/DataSheet/_encode_data';
 import csv_stringify from '../../components/DataSheet/csv_stringify';
 
+class Resizable extends React.PureComponent {
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      headerHeight: 0,
+    };
+  }
+
+  onHeaderLayout(e) {
+    this.setState({ headerHeight: e.nativeEvent.layout.height });
+  }
+
+  resize(e) {
+
+    const { onContentHeightChanged } = this.props;
+
+    if (onContentHeightChanged) {
+      const windowHeight = Dimensions.get('window').height;
+      const height = Math.max(0, windowHeight - e.nativeEvent.pageY - 0.5 * this.state.headerHeight);
+      onContentHeightChanged(height);
+    }
+  }
+
+  render() {
+    
+    const {
+      header,
+      headerContainerStyle,
+      contentHeight,
+      onContentHeightChanged,
+      children,
+    } = this.props;
+
+    return <React.Fragment>
+      <div style={{
+					userSelect: 'none',
+					MozUserSelect: 'none',
+					WebkitUserSelect: 'none',
+					msUserSelect: 'none',
+				}}>
+          <View
+            ref={(o) => this.headerRef = o}
+            onLayout={(e) => this.onHeaderLayout(e)}
+            onStartShouldSetResponder={(e) => e.target === this.headerRef}
+            onMoveShouldSetResponder={(e) => e.target === this.headerRef}
+            onStartShouldSetResponderCapture={() => false}
+            onMoveShouldSetResponderCapture={() => false}
+            onResponderTerminationRequest={() => false}
+            onResponderMove={(e) => this.resize(e)}
+            onResponderRelease={(e) => this.resize(e)}
+            style={headerContainerStyle}>
+            {header}
+          </View>
+      </div>
+      <View style={{ height: contentHeight }}>
+      {children}
+      </View>
+    </React.Fragment>
+  }
+}
+
 class Home extends React.Component {
 
   constructor(props) {
@@ -35,6 +98,7 @@ class Home extends React.Component {
       last_select_command: '',
       result: '',
       resultStyle: 'table',
+      panelHeight: storage.getItem('panelHeight') ?? 300,
     };
   }
 
@@ -403,13 +467,14 @@ class Home extends React.Component {
         data={this.state.result} 
         displayStyle={this.state.resultStyle} 
         columnSettingKey={this.state.currentTable} />
-      <View style={{ 
-        padding: 4,
-        flexDirection: 'row', 
-        background: '#2F4F4F',
-        alignItems: 'stretch',
-      }}>
-        <Button 
+      <Resizable
+        contentHeight={this.state.panelHeight}
+        onContentHeightChanged={(height) => {
+          this.setState({ panelHeight: height });
+          storage.setItem('panelHeight', height);
+        }}
+        header={<React.Fragment>
+          <Button 
           icon='Ionicons' 
           iconStyle={{ 
             name: 'play',
@@ -423,16 +488,21 @@ class Home extends React.Component {
             aspectRatio: 1,
           }}
           onPress={() => this.runCommand(this.state.command)} />
-      </View>
-      <View style={{ height: 300 }}>
-      <CodeMirror
-        value={this.state.command}
-        onChange={(command) => this.setState({ command })}
-        options={{ 
-          mode: mode,
-          lineNumbers: true,
-        }} />
-      </View>
+        </React.Fragment>}
+        headerContainerStyle={{ 
+          padding: 4,
+          flexDirection: 'row', 
+          background: '#2F4F4F',
+          alignItems: 'stretch',
+        }}>
+        <CodeMirror
+          value={this.state.command}
+          onChange={(command) => this.setState({ command })}
+          options={{ 
+            mode: mode,
+            lineNumbers: true,
+          }} />
+      </Resizable>
     </View>;
   }
 
