@@ -74,6 +74,10 @@ function createDatabase() {
 			return socket_run({ action: 'tableInfo', table });
 		}
 		
+		deleteRows(table, selection) {
+			return socket_run({ action: 'deleteRows', table, selection });
+		}
+		
 		runSQLCommand(sql, options) {
 			return socket_run({ action: 'runCommand', command: sql }, options);
 		}

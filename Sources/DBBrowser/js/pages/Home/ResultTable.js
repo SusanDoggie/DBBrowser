@@ -14,6 +14,12 @@ export default class ResultTable extends React.PureComponent {
     this.state = {
 			token: uuidv4(),
     };
+
+    this.datasheet = React.createRef();
+  }
+
+  clearSelection() {
+    this.datasheet.current?.clearSelection();
   }
 
   renderBody() {
@@ -31,6 +37,7 @@ export default class ResultTable extends React.PureComponent {
 
         return <DataSheet
           key={`datasheet-${this.state.token}`}
+          ref={this.datasheet}
           data={grid} 
           tableInfo={this.props.tableInfo}
           columns={columns}

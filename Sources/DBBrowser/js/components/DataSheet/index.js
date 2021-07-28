@@ -199,6 +199,10 @@ export default class DataSheet extends React.PureComponent {
 		}
 	}
 
+	clearSelection() {
+		this.setState({ selecting_rows: null, selected_rows: [], selecting_cells: null, selected_cells: null });
+	}
+
 	encodeData(value) {
 
 		if (this.props.encodeData) {

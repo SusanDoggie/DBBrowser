@@ -101,6 +101,8 @@ class Home extends React.Component {
       resultStyle: 'table',
       panelHeight: storage.getItem('panelHeight') ?? 300,
     };
+
+    this.resultTable = React.createRef();
   }
 
   componentDidMount() {
@@ -455,19 +457,58 @@ class Home extends React.Component {
     }
   }
   
-  handleDeleteRows(rows, columns) {
+  async handleDeleteRows(rows, columns) {
+
+    if (!confirm('Are you sure you want to delete selected rows?')) return;
+
+    const {
+      result,
+      currentTable,
+      tableInfo,
+      last_select_command,
+    } = this.state;
+
+    const database = this.props.database;
+
+    const selected_rows = rows.map(x => result[x]);
+    const { primaryKey } = tableInfo ?? {};
+
+    if (_.isEmpty(primaryKey)) return;
+
+    const selection = selected_rows.map(x => Object.fromEntries(primaryKey.map(k => [k, x[k]])));
+    await database.deleteRows(currentTable, selection);
+
+    const last_select_table = this.parse_command(last_select_command)?.table;
+
+    if (last_select_table == currentTable) {
+
+      await this.runCommand(last_select_command);
+
+    } else {
+
+      let select_command;
+  
+      if (url?.protocol == 'mongodb:') {
+        select_command = EJSON.stringify({ find: currentTable, limit: 100 });
+      } else {
+        select_command = `SELECT * FROM ${currentTable} LIMIT 100`;
+      }
+
+      await this.runCommand(select_command);
+    }
+
+    this.resultTable.current?.clearSelection();
+  }
+
+  async handleDeleteCells(cells, columns) {
     
   }
 
-  handleDeleteCells(cells, columns) {
+  async handlePasteRows(rows, columns) {
     
   }
 
-  handlePasteRows(rows, columns) {
-    
-  }
-
-  handlePasteCells(cells, columns) {
+  async handlePasteCells(cells, columns) {
 
   }
 
@@ -564,6 +605,7 @@ class Home extends React.Component {
       </View>
       <ResultTable 
         style={{ flex: 1 }} 
+        ref={this.resultTable}
         data={this.state.result}
         tableInfo={this.state.tableInfo}
         displayStyle={this.state.resultStyle} 

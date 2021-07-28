@@ -96,175 +96,219 @@ extension WebSocketController {
     
     private func onMessage(_ ws: WebSocket, _ session: Session, _ message: BSON) {
         
-        switch message["action"].stringValue {
-        case "connect":
+        do {
             
-            guard let url = message["url"].stringValue.flatMap(URLComponents.init(string:)) else {
-                self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid url")])
-                return
-            }
-            
-            Database.connect(url: url, on: ws.eventLoop).whenComplete {
-                switch $0 {
-                case let .success(connection):
-                    
-                    session.reconnect = { database, eventLoop in
-                        var url = url
-                        url.path = "/\(database)"
-                        return Database.connect(url: url, on: eventLoop)
-                    }
-                    
-                    if url.scheme == "mongodb" {
-                        session.type = .mongo
-                    } else if connection is DBSQLConnection {
-                        session.type = .sql
-                    }
-                    
-                    session.connection = connection
-                    self.send(ws, ["success": true, "token": message["token"]])
-                    
-                case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
-                }
-            }
-            
-        case "reconnect":
-            
-            guard let reconnect = session.reconnect else {
-                self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
-                return
-            }
-            
-            guard let database = message["database"].stringValue else {
-                self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
-                return
-            }
-            
-            reconnect(database, ws.eventLoop).whenComplete {
-                switch $0 {
-                case let .success(connection):
-                    
-                    _ = session.connection?.close()
-                    session.connection = connection
-                    self.send(ws, ["success": true, "token": message["token"]])
-                    
-                case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
-                }
-            }
-            
-        case "databases":
-            
-            guard let connection = session.connection else {
-                self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
-                return
-            }
-            
-            connection.databases().whenComplete {
-                switch $0 {
-                case let .success(result): self.send(ws, ["success": true, "token": message["token"], "data": BSON(result)])
-                case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
-                }
-            }
-            
-        case "tables":
-            
-            switch session.type {
-            case .sql:
+            switch message["action"].stringValue {
+            case "connect":
                 
-                guard let connection = session.connection as? DBSQLConnection else {
-                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                guard let url = message["url"].stringValue.flatMap(URLComponents.init(string:)) else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid url")])
                     return
                 }
                 
-                connection.tables().whenComplete {
+                Database.connect(url: url, on: ws.eventLoop).whenComplete {
                     switch $0 {
-                    case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
+                    case let .success(connection):
+                        
+                        session.reconnect = { database, eventLoop in
+                            var url = url
+                            url.path = "/\(database)"
+                            return Database.connect(url: url, on: eventLoop)
+                        }
+                        
+                        if url.scheme == "mongodb" {
+                            session.type = .mongo
+                        } else if connection is DBSQLConnection {
+                            session.type = .sql
+                        }
+                        
+                        session.connection = connection
+                        self.send(ws, ["success": true, "token": message["token"]])
+                        
                     case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
                     }
                 }
                 
-            case .mongo:
+            case "reconnect":
+                
+                guard let reconnect = session.reconnect else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                    return
+                }
+                
+                guard let database = message["database"].stringValue else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                    return
+                }
+                
+                reconnect(database, ws.eventLoop).whenComplete {
+                    switch $0 {
+                    case let .success(connection):
+                        
+                        _ = session.connection?.close()
+                        session.connection = connection
+                        self.send(ws, ["success": true, "token": message["token"]])
+                        
+                    case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                    }
+                }
+                
+            case "databases":
                 
                 guard let connection = session.connection else {
                     self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
                     return
                 }
                 
-                connection.mongoQuery().collections().execute()
-                    .flatMap { $0.toArray() }
-                    .map { $0.compactMap { $0.type == .collection ? $0.name : nil } }
-                    .whenComplete {
+                connection.databases().whenComplete {
+                    switch $0 {
+                    case let .success(result): self.send(ws, ["success": true, "token": message["token"], "data": BSON(result)])
+                    case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                    }
+                }
+                
+            case "tables":
+                
+                switch session.type {
+                case .sql:
+                    
+                    guard let connection = session.connection as? DBSQLConnection else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                        return
+                    }
+                    
+                    connection.tables().whenComplete {
                         switch $0 {
                         case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
                         case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
                         }
                     }
-                
-            default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
-            }
-            
-        case "views":
-            
-            switch session.type {
-            case .sql:
-                
-                guard let connection = session.connection as? DBSQLConnection else {
-                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
-                    return
-                }
-                
-                connection.views().whenComplete {
-                    switch $0 {
-                    case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
-                    case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                    
+                case .mongo:
+                    
+                    guard let connection = session.connection else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                        return
                     }
+                    
+                    connection.mongoQuery().collections().execute()
+                        .flatMap { $0.toArray() }
+                        .map { $0.compactMap { $0.type == .collection ? $0.name : nil } }
+                        .whenComplete {
+                            switch $0 {
+                            case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
+                            case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                            }
+                        }
+                    
+                default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
                 }
                 
-            case .mongo:
+            case "views":
+                
+                switch session.type {
+                case .sql:
+                    
+                    guard let connection = session.connection as? DBSQLConnection else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                        return
+                    }
+                    
+                    connection.views().whenComplete {
+                        switch $0 {
+                        case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
+                        case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                        }
+                    }
+                    
+                case .mongo:
+                    
+                    guard let connection = session.connection else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                        return
+                    }
+                    
+                    connection.mongoQuery().collections().execute()
+                        .flatMap { $0.toArray() }
+                        .map { $0.compactMap { $0.type == .view ? $0.name : nil } }
+                        .whenComplete {
+                            switch $0 {
+                            case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
+                            case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                            }
+                        }
+                    
+                default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
+                }
+                
+            case "materializedViews":
+                
+                switch session.type {
+                case .sql:
+                    
+                    guard let connection = session.connection as? DBSQLConnection else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                        return
+                    }
+                    
+                    connection.materializedViews().whenComplete {
+                        switch $0 {
+                        case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
+                        case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                        }
+                    }
+                    
+                default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
+                }
+                
+            case "tableInfo":
+                
+                switch session.type {
+                case .sql:
+                    
+                    guard let connection = session.connection as? DBSQLConnection else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                        return
+                    }
+                    
+                    guard let table = message["table"].stringValue else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                        return
+                    }
+                    
+                    connection.columns(of: table)
+                        .and(connection.primaryKey(of: table))
+                        .whenComplete {
+                            switch $0 {
+                            case let .success((columns, primaryKey)):
+                                
+                                self.send(ws, [
+                                    "success": true,
+                                    "token": message["token"],
+                                    "data": [
+                                        "primaryKey": BSON(primaryKey),
+                                        "columns": BSON(columns.map { [
+                                            "name": BSON($0.name),
+                                            "type": BSON($0.type),
+                                            "isOptional": BSON($0.isOptional),
+                                        ] }),
+                                    ]
+                                ])
+                                
+                            case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                            }
+                        }
+                    
+                case .mongo:
+                    
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("unsupported operation")])
+                    
+                default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
+                }
+                
+            case "deleteRows":
                 
                 guard let connection = session.connection else {
-                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
-                    return
-                }
-                
-                connection.mongoQuery().collections().execute()
-                    .flatMap { $0.toArray() }
-                    .map { $0.compactMap { $0.type == .view ? $0.name : nil } }
-                    .whenComplete {
-                        switch $0 {
-                        case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
-                        case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
-                        }
-                    }
-                
-            default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
-            }
-            
-        case "materializedViews":
-            
-            switch session.type {
-            case .sql:
-                
-                guard let connection = session.connection as? DBSQLConnection else {
-                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
-                    return
-                }
-                
-                connection.materializedViews().whenComplete {
-                    switch $0 {
-                    case let .success(tables): self.send(ws, ["success": true, "token": message["token"], "data": BSON(tables)])
-                    case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
-                    }
-                }
-                
-            default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
-            }
-            
-        case "tableInfo":
-            
-            switch session.type {
-            case .sql:
-                
-                guard let connection = session.connection as? DBSQLConnection else {
                     self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
                     return
                 }
@@ -274,92 +318,84 @@ extension WebSocketController {
                     return
                 }
                 
-                connection.columns(of: table)
-                    .and(connection.primaryKey(of: table))
+                guard let selection = message["selection"].arrayValue?.compactMap({ $0.documentValue }) else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                    return
+                }
+                
+                let _selection = try selection.map { try Dictionary(uniqueKeysWithValues: $0.map { try ($0.key, DBData($0.value)) }) }
+                
+                connection.query()
+                    .find(table)
+                    .filter { x in .or(_selection.map { .and($0.map { x[$0.key] == $0.value }) }) }
+                    .delete()
                     .whenComplete {
                         switch $0 {
-                        case let .success((columns, primaryKey)):
-                            
-                            self.send(ws, [
-                                "success": true,
-                                "token": message["token"],
-                                "data": [
-                                    "primaryKey": BSON(primaryKey),
-                                    "columns": BSON(columns.map { [
-                                        "name": BSON($0.name),
-                                        "type": BSON($0.type),
-                                        "isOptional": BSON($0.isOptional),
-                                    ] }),
-                                ]
-                            ])
-                            
+                        case .success: self.send(ws, ["success": true, "token": message["token"]])
                         case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
                         }
                     }
                 
-            case .mongo:
+            case "runCommand":
                 
-                self.send(ws, ["success": false, "token": message["token"], "error": .string("unsupported operation")])
-                
-            default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
-            }
-            
-        case "runCommand":
-            
-            switch session.type {
-            case .sql:
-                
-                guard let connection = session.connection as? DBSQLConnection else {
-                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
-                    return
-                }
-                
-                guard let command = message["command"].stringValue else {
-                    self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
-                    return
-                }
-                
-                connection.execute(SQLRaw(command)).whenComplete {
-                    switch $0 {
-                    case let .success(rows):
-                        
-                        do {
+                switch session.type {
+                case .sql:
+                    
+                    guard let connection = session.connection as? DBSQLConnection else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                        return
+                    }
+                    
+                    guard let command = message["command"].stringValue else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                        return
+                    }
+                    
+                    connection.execute(SQLRaw(command)).whenComplete {
+                        switch $0 {
+                        case let .success(rows):
                             
-                            let result = try rows.map { try BSONDocument($0) }
+                            do {
+                                
+                                let result = try rows.map { try BSONDocument($0) }
+                                
+                                self.send(ws, ["success": true, "token": message["token"], "data": result.toBSON()])
+                                
+                            } catch {
+                                self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                            }
                             
-                            self.send(ws, ["success": true, "token": message["token"], "data": result.toBSON()])
-                            
-                        } catch {
-                            self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                        case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
                         }
-                        
-                    case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
                     }
-                }
-                
-            case .mongo:
-                
-                guard let connection = session.connection else {
-                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
-                    return
-                }
-                
-                guard let _command = message["command"].binaryValue,
-                      let command = try? BSONDocument(fromBSON: _command.data) else {
-                    self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
-                    return
-                }
-                connection.mongoQuery().runCommand(command).whenComplete {
-                    switch $0 {
-                    case let .success(result): self.send(ws, ["success": true, "token": message["token"], "data": .document(result)])
-                    case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                    
+                case .mongo:
+                    
+                    guard let connection = session.connection else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                        return
                     }
+                    
+                    guard let _command = message["command"].binaryValue,
+                          let command = try? BSONDocument(fromBSON: _command.data) else {
+                        self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                        return
+                    }
+                    connection.mongoQuery().runCommand(command).whenComplete {
+                        switch $0 {
+                        case let .success(result): self.send(ws, ["success": true, "token": message["token"], "data": .document(result)])
+                        case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                        }
+                    }
+                    
+                default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
                 }
                 
-            default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown error")])
+            default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown action")])
             }
             
-        default: self.send(ws, ["success": false, "token": message["token"], "error": .string("unknown action")])
+        } catch {
+            self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
         }
     }
     
