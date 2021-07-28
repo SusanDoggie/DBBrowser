@@ -465,43 +465,65 @@ class Home extends React.Component {
       result,
       currentTable,
       tableInfo,
-      last_select_command,
     } = this.state;
 
     const database = this.props.database;
-
-    const selected_rows = rows.map(x => result[x]);
     const { primaryKey } = tableInfo ?? {};
 
+    if (_.isEmpty(rows)) return;
     if (_.isEmpty(primaryKey)) return;
 
-    const selection = selected_rows.map(x => Object.fromEntries(primaryKey.map(k => [k, x[k]])));
-    await database.deleteRows(currentTable, selection);
+    const items = rows.map(x => result[x]).map(x => Object.fromEntries(primaryKey.map(k => [k, x[k]])));
+    await database.deleteRows(currentTable, items);
 
-    const last_select_table = this.parse_command(last_select_command)?.table;
-
-    if (last_select_table == currentTable) {
-
-      await this.runCommand(last_select_command);
-
-    } else {
-
-      let select_command;
-  
-      if (url?.protocol == 'mongodb:') {
-        select_command = EJSON.stringify({ find: currentTable, limit: 100 });
-      } else {
-        select_command = `SELECT * FROM ${currentTable} LIMIT 100`;
-      }
-
-      await this.runCommand(select_command);
-    }
+    const _result = result.filter((x, i) => !rows.includes(i));
+    this.setState({ result: _result });
 
     this.resultTable.current?.clearSelection();
   }
 
   async handleDeleteCells(cells, columns) {
     
+    const {
+      result,
+      currentTable,
+      tableInfo,
+    } = this.state;
+
+    const url = this.connectionUrl();
+
+    const database = this.props.database;
+    const { primaryKey } = tableInfo ?? {};
+
+    if (_.isEmpty(cells)) return;
+    if (_.isEmpty(primaryKey)) return;
+
+    const { start_row, start_col, end_row, end_col } = cells;
+
+    const min_row = Math.min(start_row, end_row);
+    const max_row = Math.max(start_row, end_row);
+    const min_col = Math.min(start_col, end_col);
+    const max_col = Math.max(start_col, end_col);
+
+    const _rows = _.range(min_row, max_row + 1);
+    const _cols = _.range(min_col, max_col + 1);
+
+    const _columns = _cols.map(x => columns[x]).filter(x => !primaryKey.includes(x));
+    const items = _rows.map(x => result[x]).map(x => {
+      return {
+        key: Object.fromEntries(primaryKey.map(k => [k, x[k]])),
+        update: Object.fromEntries(_columns.map(k => [k, null])),
+      }
+    });
+    await database.updateItems(currentTable, items);
+
+    let _result;
+    if (url?.protocol == 'mongodb:') {
+      _result = result.map((x, i) => _rows.includes(i) ? { ...x, ...Object.fromEntries(_columns.map(k => [k, undefined])) } : x);
+    } else {
+      _result = result.map((x, i) => _rows.includes(i) ? { ...x, ...Object.fromEntries(_columns.map(k => [k, null])) } : x);
+    }
+    this.setState({ result: _result });
   }
 
   async handlePasteRows(rows, columns) {

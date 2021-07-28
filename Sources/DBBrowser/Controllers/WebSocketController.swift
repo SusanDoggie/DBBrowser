@@ -318,23 +318,78 @@ extension WebSocketController {
                     return
                 }
                 
-                guard let selection = message["selection"].arrayValue?.compactMap({ $0.documentValue }) else {
+                guard let delete = message["delete"].arrayValue?.compactMap({ $0.documentValue }) else {
                     self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
                     return
                 }
                 
-                let _selection = try selection.map { try Dictionary(uniqueKeysWithValues: $0.map { try ($0.key, DBData($0.value)) }) }
+                let _delete = try delete.map { try Dictionary(uniqueKeysWithValues: $0.map { try ($0.key, DBData($0.value)) }) }
                 
-                connection.query()
-                    .find(table)
-                    .filter { x in .or(_selection.map { .and($0.map { x[$0.key] == $0.value }) }) }
-                    .delete()
-                    .whenComplete {
-                        switch $0 {
-                        case .success: self.send(ws, ["success": true, "token": message["token"]])
-                        case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                if _delete.contains(where: { $0.isEmpty }) {
+                    
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                    
+                } else {
+                    
+                    connection.query()
+                        .find(table)
+                        .filter { x in .or(_delete.map { .and($0.map { x[$0.key] == $0.value }) }) }
+                        .delete()
+                        .whenComplete {
+                            switch $0 {
+                            case .success: self.send(ws, ["success": true, "token": message["token"]])
+                            case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                            }
                         }
+                }
+                
+            case "updateItems":
+                
+                guard let connection = session.connection else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("database not connected")])
+                    return
+                }
+                
+                guard let table = message["table"].stringValue else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                    return
+                }
+                
+                guard let updates = message["update"].arrayValue else {
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                    return
+                }
+                
+                let _updates: [([String : DBData], [String : DBData])] = try updates.map {
+                    
+                    let _key = try $0["key"].documentValue.map { try Dictionary(uniqueKeysWithValues: $0.map { try ($0.key, DBData($0.value)) }) }
+                    let _update = try $0["update"].documentValue.map { try Dictionary(uniqueKeysWithValues: $0.map { try ($0.key, DBData($0.value)) }) }
+                    
+                    return (_key ?? [:], _update ?? [:])
+                }
+                
+                if _updates.contains(where: { $0.isEmpty || $1.isEmpty }) {
+                    
+                    self.send(ws, ["success": false, "token": message["token"], "error": .string("invalid command")])
+                    
+                } else {
+                    
+                    let results = _updates.map { key, update in
+                        
+                        connection.query()
+                            .findOne(table)
+                            .filter { x in .and(key.map { x[$0.key] == $0.value }) }
+                            .update(update)
                     }
+                    
+                    results.flatten(on: ws.eventLoop)
+                        .whenComplete {
+                            switch $0 {
+                            case .success: self.send(ws, ["success": true, "token": message["token"]])
+                            case let .failure(error): self.send(ws, ["success": false, "token": message["token"], "error": .string("\(error)")])
+                            }
+                        }
+                }
                 
             case "runCommand":
                 
