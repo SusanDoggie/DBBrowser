@@ -30,14 +30,14 @@ export default class ResultTable extends React.PureComponent {
         const grid = this.props.data.map(x => columns.map(c => x[c]));
 
         return <DataSheet 
-        key={`datasheet2-${this.state.token}`} 
-        data={grid} 
-        columns={columns} 
-        handleDeleteRows={(e) => this.props.handleDeleteRows && this.props.handleDeleteRows(e, columns)} 
-        handleDeleteCells={(e) => this.props.handleDeleteCells && this.props.handleDeleteCells(e, columns)} 
-        handlePasteRows={(e) => this.props.handlePasteRows && this.props.handlePasteRows(e, columns)} 
-        handlePasteCells={(e) => this.props.handlePasteCells && this.props.handlePasteCells(e, columns)} 
-        columnSettingKey={this.props.columnSettingKey} />;
+          key={`datasheet-${this.state.token}`} 
+          data={grid} 
+          columns={columns} 
+          handleDeleteRows={(e) => this.props.handleDeleteRows && this.props.handleDeleteRows(e, columns)} 
+          handleDeleteCells={(e) => this.props.handleDeleteCells && this.props.handleDeleteCells(e, columns)} 
+          handlePasteRows={(e) => this.props.handlePasteRows && this.props.handlePasteRows(e, columns)} 
+          handlePasteCells={(e) => this.props.handlePasteCells && this.props.handlePasteCells(e, columns)} 
+          columnSettingKey={this.props.columnSettingKey} />;
 
       case 'raw':
         return <JsonCode key={`jsoncode-${this.state.token}`} value={this.props.data} space={4} />;
