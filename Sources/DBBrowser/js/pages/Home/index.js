@@ -370,6 +370,22 @@ class Home extends React.Component {
       saveAs(blob, _.isEmpty(this.state.currentTable) ? 'file.json' : `${this.state.currentTable}.json`);
     }
   }
+  
+  handleDeleteRows(rows, columns) {
+    
+  }
+
+  handleDeleteCells(cells, columns) {
+    
+  }
+
+  handlePasteRows(rows, columns) {
+    
+  }
+
+  handlePasteCells(cells, columns) {
+
+  }
 
   renderDashboard() {
 
@@ -466,7 +482,11 @@ class Home extends React.Component {
         style={{ flex: 1 }} 
         data={this.state.result} 
         displayStyle={this.state.resultStyle} 
-        columnSettingKey={this.state.currentTable} />
+        columnSettingKey={this.state.currentTable} 
+        handleDeleteRows={(rows, columns) => this.handleDeleteRows(rows, columns)} 
+        handleDeleteCells={(cells, columns) => this.handleDeleteCells(cells, columns)} 
+        handlePasteRows={(rows, columns) => this.handlePasteRows(rows, columns)} 
+        handlePasteCells={(cells, columns) => this.handlePasteCells(cells, columns)} />
       <Resizable
         contentHeight={this.state.panelHeight}
         onContentHeightChanged={(height) => {

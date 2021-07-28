@@ -33,11 +33,11 @@ export default class ResultTable extends React.PureComponent {
           key={`datasheet-${this.state.token}`} 
           data={grid} 
           columns={columns} 
-          handleDeleteRows={(e) => this.props.handleDeleteRows && this.props.handleDeleteRows(e, columns)} 
-          handleDeleteCells={(e) => this.props.handleDeleteCells && this.props.handleDeleteCells(e, columns)} 
-          handlePasteRows={(e) => this.props.handlePasteRows && this.props.handlePasteRows(e, columns)} 
-          handlePasteCells={(e) => this.props.handlePasteCells && this.props.handlePasteCells(e, columns)} 
-          columnSettingKey={this.props.columnSettingKey} />;
+          columnSettingKey={this.props.columnSettingKey} 
+          handleDeleteRows={(rows) => this.props.handleDeleteRows && this.props.handleDeleteRows(rows, columns)} 
+          handleDeleteCells={(cells) => this.props.handleDeleteCells && this.props.handleDeleteCells(cells, columns)} 
+          handlePasteRows={(rows) => this.props.handlePasteRows && this.props.handlePasteRows(rows, columns)} 
+          handlePasteCells={(cells) => this.props.handlePasteCells && this.props.handlePasteCells(cells, columns)} />;
 
       case 'raw':
         return <JsonCode key={`jsoncode-${this.state.token}`} value={this.props.data} space={4} />;
