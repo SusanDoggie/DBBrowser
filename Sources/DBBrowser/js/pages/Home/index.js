@@ -19,6 +19,7 @@ import eventEmitter from '../../utils/eventEmitter';
 import { withDatabase } from '../../utils/database';
 
 import _encode_data from '../../components/DataSheet/_encode_data';
+import csv_stringify from '../../components/DataSheet/csv_stringify';
 
 class Home extends React.Component {
 
@@ -293,8 +294,10 @@ class Home extends React.Component {
       const columns = this.state.result.reduce((result, x) => _.uniq(result.concat(Object.keys(x))), []);
       const grid = this.state.result.map(x => columns.map(c => _encode_data(x[c])));
 
-      // const blob = new Blob([file], { type: 'text/csv' });
-      // saveAs(blob, _.isEmpty(this.state.currentTable) ? 'file.csv' : `${this.state.currentTable}.csv`);
+      const file = csv_stringify([columns, ...grid]);
+
+      const blob = new Blob([file], { type: 'text/csv' });
+      saveAs(blob, _.isEmpty(this.state.currentTable) ? 'file.csv' : `${this.state.currentTable}.csv`);
 
     } else {
 
