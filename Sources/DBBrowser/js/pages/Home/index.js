@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _, { isString } from 'lodash';
 import React from 'react';
 import { View, ScrollView, Text, Dimensions } from 'react-native';
 import { withRouter } from 'react-router';
@@ -94,6 +94,7 @@ class Home extends React.Component {
       autoConnect: false,
       connectionStr: '',
       currentTable: null,
+      tableInfo: null,
       command: '',
       last_select_command: '',
       result: '',
@@ -225,6 +226,73 @@ class Home extends React.Component {
     }
   }
 
+  calculate_columns_type(data) {
+
+    if (!_.isArray(data)) {
+      return;
+    }
+
+    const columns = {};
+
+    const type_of = (value) => {
+      if (_.isBoolean(value)) {
+        return 'boolean';
+      }
+      if (_.isNumber(value)) {
+        return 'number';
+      }
+      if (_.isDate(value)) {
+        return 'date';
+      }
+      if (_.isString(value)) {
+        return 'string';
+      }
+      if (_.isArray(value)) {
+        return 'array';
+      }
+      switch (value._bsontype) {
+  
+        case 'Binary':
+  
+        switch (value.sub_type) {
+          case Binary.SUBTYPE_UUID: return 'uuid';
+          case Binary.SUBTYPE_MD5: return 'md5';
+          default: return 'binary';
+        }
+  
+        case 'BSONRegExp': return 'regex';
+        case 'Symbol': return 'symbol';
+        case 'Double': return 'double';
+        case 'Int32': return 'int32';
+        case 'Decimal128': return 'decimal';
+        case 'Long': return 'long';
+        case 'UUID': return 'uuid';
+
+        case 'ObjectId':
+        case 'ObjectID':
+  
+          return 'objectId';
+      }
+    }
+
+    for (const item of data) {
+      for (const [key, value] of Object.entries(item)) {
+
+        if (_.isNil(value)) continue;
+
+        const type = type_of(value) ?? 'any';
+
+        if (_.isNil(columns[key])) {
+          columns[key] = type;
+        } else if (columns[key] != type) {
+          columns[key] = 'any';
+        }
+      }
+    }
+
+    return Object.entries(columns).map(x => { return { name: x[0], type: x[1] ?? 'any' } });
+  }
+
   async runCommand(command) {
 
     try {
@@ -247,6 +315,7 @@ class Home extends React.Component {
 
       let result;
       let currentTable;
+      let tableInfo;
 			let _run_command;
 			
       if (url?.protocol == 'mongodb:') {
@@ -266,14 +335,24 @@ class Home extends React.Component {
         if (is_select && _.isString(table)) {
 
           last_select_command = command;
-          currentTable = table;
           result = _result;
+          currentTable = table;
+          if (url?.protocol == 'mongodb:') {
+            tableInfo = { primaryKey: ['_id'], columns: this.calculate_columns_type(result) };
+          } else {
+            tableInfo = await database.tableInfo(currentTable);
+          }
 
         } else if (!_.isEmpty(_result)) {
 
           last_select_command = '';
-          currentTable = table;
           result = _result;
+          currentTable = table;
+          if (url?.protocol == 'mongodb:') {
+            tableInfo = { primaryKey: ['_id'], columns: this.calculate_columns_type(result) };
+          } else {
+            tableInfo = await database.tableInfo(currentTable);
+          }
 
         } else if (!is_select && _.isString(table) && table != this.parse_command(last_select_command)?.table) {
 
@@ -286,11 +365,16 @@ class Home extends React.Component {
       }
 
       if (_.isNil(result) && !_.isEmpty(last_select_command)) {
-        currentTable = this.parse_command(last_select_command)?.table;
         result = await _run_command(last_select_command);
+        currentTable = this.parse_command(last_select_command)?.table;
+        if (url?.protocol == 'mongodb:') {
+          tableInfo = { primaryKey: ['_id'], columns: this.calculate_columns_type(result) };
+        } else {
+          tableInfo = await database.tableInfo(currentTable);
+        }
       }
 
-      this.setState({ result, currentTable, command, last_select_command });
+      this.setState({ result, currentTable, tableInfo, command, last_select_command });
       
     } catch (e) {
       console.log(e);
@@ -480,7 +564,8 @@ class Home extends React.Component {
       </View>
       <ResultTable 
         style={{ flex: 1 }} 
-        data={this.state.result} 
+        data={this.state.result}
+        tableInfo={this.state.tableInfo}
         displayStyle={this.state.resultStyle} 
         columnSettingKey={this.state.currentTable} 
         handleDeleteRows={(rows, columns) => this.handleDeleteRows(rows, columns)} 

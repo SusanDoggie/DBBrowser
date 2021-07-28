@@ -29,14 +29,15 @@ export default class ResultTable extends React.PureComponent {
         const columns = this.props.data.reduce((result, x) => _.uniq(result.concat(Object.keys(x))), []);
         const grid = this.props.data.map(x => columns.map(c => x[c]));
 
-        return <DataSheet 
-          key={`datasheet-${this.state.token}`} 
+        return <DataSheet
+          key={`datasheet-${this.state.token}`}
           data={grid} 
-          columns={columns} 
-          columnSettingKey={this.props.columnSettingKey} 
-          handleDeleteRows={(rows) => this.props.handleDeleteRows && this.props.handleDeleteRows(rows, columns)} 
-          handleDeleteCells={(cells) => this.props.handleDeleteCells && this.props.handleDeleteCells(cells, columns)} 
-          handlePasteRows={(rows) => this.props.handlePasteRows && this.props.handlePasteRows(rows, columns)} 
+          tableInfo={this.props.tableInfo}
+          columns={columns}
+          columnSettingKey={this.props.columnSettingKey}
+          handleDeleteRows={(rows) => this.props.handleDeleteRows && this.props.handleDeleteRows(rows, columns)}
+          handleDeleteCells={(cells) => this.props.handleDeleteCells && this.props.handleDeleteCells(cells, columns)}
+          handlePasteRows={(rows) => this.props.handlePasteRows && this.props.handlePasteRows(rows, columns)}
           handlePasteCells={(cells) => this.props.handlePasteCells && this.props.handlePasteCells(cells, columns)} />;
 
       case 'raw':

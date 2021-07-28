@@ -28,6 +28,49 @@ export default class DataSheetHeader extends React.PureComponent {
     this.setState({ columnSetting: setting });
   }
 
+  renderHeaderCell(col, i) {
+
+    const { primaryKey, columns: columnInfos } = this.props.tableInfo ?? {};
+
+    const columnInfo = _.isArray(columnInfos) ? columnInfos.find(x => x.name == col) : null;
+    const _columnInfo = !_.isNil(columnInfo) && <Text style={{ color: 'lightgray', fontSize: 12 }}> {columnInfo.isOptional ? 'Optional<' : ''}{columnInfo.type}{columnInfo.isOptional ? '>' : ''}</Text>;
+
+    const _key = _.isArray(primaryKey) && primaryKey.includes(col) && <Text><Entypo name='key' color='#B4B43C' /> </Text>;
+
+    return <th 
+      key={`${this.state.token}-col-header-${i}`} 
+      style={{
+        padding: 0,
+        position: 'relative', 
+        border: 1, 
+        borderStyle: 'solid',
+        borderColor: '#DDD',
+      }}>
+        <ResizableBox
+          axis='x'
+          handle={(handleAxis, ref) => <div 
+            ref={ref} 
+            style={{ 
+              display: 'flex',
+              position: 'absolute',
+              alignItems: 'center',
+              right: 0, 
+              top: 0, 
+              bottom: 0,
+            }}>
+              <Entypo name='dots-three-vertical' color='gray' />
+            </div>}
+          resizeHandles={['e']}
+          width={this.state.columnSetting[col]?.width ?? 96}
+          height={24}
+          onResize={(e, {size}) => this.updateColumnSetting({ ...this.state.columnSetting, [col]: { width: size.width } })}>
+          <View style={{ flexDirection: 'row', padding: 4, paddingRight: 16, alignItems: 'center' }}>
+            <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{_key}{col}{_columnInfo}</Text>
+          </View>
+        </ResizableBox>
+      </th>;
+  }
+
   render() {
     return <thead style={{
       position: 'sticky',
@@ -37,38 +80,7 @@ export default class DataSheetHeader extends React.PureComponent {
     }}>
       <tr style={{ backgroundColor: '#F6F8FF' }}>
         <th />
-        {this.props.columns.map((col, i) => <th 
-          key={`${this.state.token}-col-header-${i}`} 
-          style={{
-						padding: 0,
-            position: 'relative', 
-            border: 1, 
-            borderStyle: 'solid',
-						borderColor: '#DDD',
-          }}>
-            <ResizableBox
-              axis='x'
-              handle={(handleAxis, ref) => <div 
-                ref={ref} 
-                style={{ 
-                  display: 'flex',
-                  position: 'absolute',
-                  alignItems: 'center',
-                  right: 0, 
-                  top: 0, 
-                  bottom: 0,
-                }}>
-                  <Entypo name='dots-three-vertical' color='gray' />
-                </div>}
-              resizeHandles={['e']}
-              width={this.state.columnSetting[col]?.width ?? 96}
-              height={24}
-              onResize={(e, {size}) => this.updateColumnSetting({ ...this.state.columnSetting, [col]: { width: size.width } })}>
-              <View style={{ flexDirection: 'row', padding: 4, paddingRight: 16, alignItems: 'center' }}>
-                <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{col}</Text>
-              </View>
-            </ResizableBox>
-          </th>)}
+        {this.props.columns.map((col, i) => this.renderHeaderCell(col, i))}
         </tr>
     </thead>;
   }

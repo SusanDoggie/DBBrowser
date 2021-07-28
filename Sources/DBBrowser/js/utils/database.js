@@ -70,6 +70,10 @@ function createDatabase() {
 			return socket_run({ action: 'materializedViews' });
 		}
 		
+		tableInfo(table) {
+			return socket_run({ action: 'tableInfo', table });
+		}
+		
 		runSQLCommand(sql, options) {
 			return socket_run({ action: 'runCommand', command: sql }, options);
 		}
