@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { EJSON } from 'bson';
+import { Binary, UUID, EJSON } from 'bson';
 
 export default function _encode_data(value) {
     
