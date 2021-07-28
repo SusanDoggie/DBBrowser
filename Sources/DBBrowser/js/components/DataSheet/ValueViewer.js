@@ -69,14 +69,6 @@ export default  class ValueViewer extends React.PureComponent {
 
         return <Text style={{ color: 'mediumblue', fontFamily: 'monospace' }} numberOfLines={1}>{value.toString()}</Text>;
 
-      case 'MaxKey':
-
-        return <Text style={{ color: 'gray', fontFamily: 'monospace' }} numberOfLines={1}>MaxKey</Text>;
-
-      case 'MinKey':
-
-        return <Text style={{ color: 'gray', fontFamily: 'monospace' }} numberOfLines={1}>MinKey</Text>;
-
       case 'ObjectId':
       case 'ObjectID':
 

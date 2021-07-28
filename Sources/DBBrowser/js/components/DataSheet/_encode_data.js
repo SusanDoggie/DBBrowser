@@ -63,14 +63,6 @@ export default function _encode_data(value) {
 
         return value.toString();
 
-      case 'MaxKey':
-
-        return 'MaxKey';
-
-      case 'MinKey':
-
-        return 'MinKey';
-
       case 'ObjectId':
       case 'ObjectID':
 
