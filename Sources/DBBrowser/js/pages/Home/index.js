@@ -164,6 +164,7 @@ class Home extends React.Component {
       let orderby;
 
       if (!_.isEmpty(_command.sort)) {
+        orderby = [];
         for (const [key, order] of Object.entries(_command.sort)) {
           orderby.push({ column: key, isAscending: order == 1 });
         }
