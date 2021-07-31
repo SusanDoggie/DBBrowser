@@ -94,6 +94,7 @@ class Home extends React.Component {
       autoConnect: false,
       connectionStr: '',
       currentTable: null,
+      orderby: [],
       tableInfo: null,
       command: '',
       last_select_command: '',
@@ -159,7 +160,16 @@ class Home extends React.Component {
     const _command = EJSON.parse(command);
 
     if (_.isString(_command.find)) {
-      return { is_select: true, table: _command.find };
+
+      let orderby;
+
+      if (!_.isEmpty(_command.sort)) {
+        for (const [key, order] of Object.entries(_command.sort)) {
+          orderby.push({ column: key, isAscending: order == 1 });
+        }
+      }
+      
+      return { is_select: true, table: _command.find, orderby };
     }
     if (_.isString(_command.delete)) {
       return { is_select: false, table: _command.delete };
@@ -206,10 +216,29 @@ class Home extends React.Component {
       switch (ast?.type) {
 
         case 'select':
+
+          let orderby;
+
+          if (_.isArray(ast?.orderby)) {
+            orderby = [];
+            for (const item of ast.orderby) {
+              if (item.expr?.type == 'column_ref') {
+                orderby.push({ column: item.expr.column, isAscending: item.type == 'ASC' });
+              } else if (item.expr?.type == 'single_quote_string' || item.expr?.type == 'double_quote_string') {
+                orderby.push({ column: item.expr.value, isAscending: item.type == 'ASC' });
+              }
+            }
+          }
+
+          if (_.isArray(ast?.from) && ast.from.length == 1) {
+            return { ast, is_select: true, table: ast.from[0].table, orderby };
+          }
+          break;
+
         case 'delete':
           
           if (_.isArray(ast?.from) && ast.from.length == 1) {
-            return { is_select: ast.type == 'select', table: ast.from[0].table };
+            return { ast, is_select: false, table: ast.from[0].table };
           }
           break;
 
@@ -218,7 +247,7 @@ class Home extends React.Component {
         case 'create':
           
           if (_.isArray(ast?.table) && ast.table.length == 1) {
-            return { is_select: false, table: ast.table[0].table };
+            return { ast, is_select: false, table: ast.table[0].table };
           }
           break;
       }
@@ -317,6 +346,7 @@ class Home extends React.Component {
 
       let result;
       let currentTable;
+      let orderby;
       let tableInfo;
 			let _run_command;
 			
@@ -332,13 +362,14 @@ class Home extends React.Component {
 
         const _result = await _run_command(command);
 
-        const { is_select, table } = this.parse_command(command) ?? {};
+        const { is_select, table, orderby: _orderby } = this.parse_command(command) ?? {};
 
         if (is_select && _.isString(table)) {
 
           last_select_command = command;
           result = _result;
           currentTable = table;
+          orderby = _orderby;
           if (url?.protocol == 'mongodb:') {
             tableInfo = { primaryKey: ['_id'], columns: this.calculate_columns_type(result) };
           } else {
@@ -350,6 +381,7 @@ class Home extends React.Component {
           last_select_command = '';
           result = _result;
           currentTable = table;
+          orderby = [];
           if (url?.protocol == 'mongodb:') {
             tableInfo = { primaryKey: ['_id'], columns: this.calculate_columns_type(result) };
           } else {
@@ -368,7 +400,9 @@ class Home extends React.Component {
 
       if (_.isNil(result) && !_.isEmpty(last_select_command)) {
         result = await _run_command(last_select_command);
-        currentTable = this.parse_command(last_select_command)?.table;
+        let _parsed_command = this.parse_command(last_select_command);
+        currentTable = _parsed_command?.table;
+        orderby = _parsed_command?.orderby;
         if (url?.protocol == 'mongodb:') {
           tableInfo = { primaryKey: ['_id'], columns: this.calculate_columns_type(result) };
         } else {
@@ -376,7 +410,7 @@ class Home extends React.Component {
         }
       }
 
-      this.setState({ result, currentTable, tableInfo, command, last_select_command });
+      this.setState({ result, currentTable, orderby, tableInfo, command, last_select_command });
       
     } catch (e) {
       console.log(e);
@@ -534,6 +568,45 @@ class Home extends React.Component {
 
   }
 
+  async onSortPressed(col, ascending) {
+
+    if (_.isEmpty(this.state.last_select_command)) {
+      return;
+    }
+
+    const url = this.connectionUrl();
+
+    if (url?.protocol == 'mongodb:') {
+
+      const last_select_command = EJSON.parse(this.state.last_select_command, { relaxed: false });
+      last_select_command.sort = { [col]: ascending ? 1 : -1 };
+
+      await this.runCommand(EJSON.stringify(last_select_command));
+      
+    } else {
+      
+      const { ast } = this.parse_command(this.state.last_select_command) ?? {};
+
+      ast.orderby = [{
+        type: ascending ? 'ASC' : 'DESC',
+        expr: {
+          type: 'column_ref',
+          column: col,
+        }
+      }];
+
+      const database_map = {
+        'mysql:': 'mysql',
+        'postgres:': 'postgresql',
+      }
+  
+      const parser = new SQLParser();
+      const select_command = parser.sqlify(ast, { database: database_map[url?.protocol] });
+
+      await this.runCommand(select_command);
+    }
+  }
+
   renderDashboard() {
 
     const url = this.connectionUrl();
@@ -632,6 +705,8 @@ class Home extends React.Component {
         tableInfo={this.state.tableInfo}
         displayStyle={this.state.resultStyle} 
         columnSettingKey={this.state.currentTable} 
+        sortedBy={this.state.orderby}
+        onSortPressed={(col, ascending) => this.onSortPressed(col, ascending)}
         handleDeleteRows={(rows, columns) => this.handleDeleteRows(rows, columns)} 
         handleDeleteCells={(cells, columns) => this.handleDeleteCells(cells, columns)} 
         handlePasteRows={(rows, columns) => this.handlePasteRows(rows, columns)} 

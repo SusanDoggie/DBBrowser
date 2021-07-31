@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
+import AntDesign from 'react-native-vector-icons/dist/AntDesign';
 import Entypo from 'react-native-vector-icons/dist/Entypo';
 import { ResizableBox } from 'react-resizable';
 import storage from '../../utils/storage';
@@ -30,12 +31,15 @@ export default class DataSheetHeader extends React.PureComponent {
 
   renderHeaderCell(col, i) {
 
-    const { primaryKey, columns: columnInfos } = this.props.tableInfo ?? {};
+    const { tableInfo, sortedBy, onSortPressed } = this.props;
+    const { primaryKey, columns: columnInfos } = tableInfo ?? {};
 
     const columnInfo = _.isArray(columnInfos) ? columnInfos.find(x => x.name == col) : null;
     const _columnInfo = !_.isNil(columnInfo) && <Text style={{ color: 'lightgray', fontSize: 12 }}> {columnInfo.isOptional ? 'Optional<' : ''}{columnInfo.type}{columnInfo.isOptional ? '>' : ''}</Text>;
 
     const _key = _.isArray(primaryKey) && primaryKey.includes(col) && <Text><Entypo name='key' color='#B4B43C' /> </Text>;
+
+    const _sortedBy = _.isArray(sortedBy) ? sortedBy.find(x => x.column == col) : null;
 
     return <th 
       key={`${this.state.token}-col-header-${i}`} 
@@ -64,9 +68,13 @@ export default class DataSheetHeader extends React.PureComponent {
           width={this.state.columnSetting[col]?.width ?? 96}
           height={24}
           onResize={(e, {size}) => this.updateColumnSetting({ ...this.state.columnSetting, [col]: { width: size.width } })}>
-          <View style={{ flexDirection: 'row', padding: 4, paddingRight: 16, alignItems: 'center' }}>
-            <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{_key}{col}{_columnInfo}</Text>
-          </View>
+          <Pressable onPress={() => onSortPressed && onSortPressed(col, _sortedBy?.isAscending != true)}>
+            <View style={{ flexDirection: 'row', padding: 4, paddingRight: 16, alignItems: 'center' }}>
+              <Text style={{ fontFamily: 'monospace' }} numberOfLines={1}>{_key}{col}{_columnInfo}</Text>
+              {_sortedBy?.isAscending == true && <AntDesign name='caretup' style={{ marginLeft: 4 }} />}
+              {_sortedBy?.isAscending == false && <AntDesign name='caretdown' style={{ marginLeft: 4 }} />}
+            </View>
+          </Pressable>
         </ResizableBox>
       </th>;
   }

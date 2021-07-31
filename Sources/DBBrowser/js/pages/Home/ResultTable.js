@@ -42,6 +42,8 @@ export default class ResultTable extends React.PureComponent {
           tableInfo={this.props.tableInfo}
           columns={columns}
           columnSettingKey={this.props.columnSettingKey}
+          sortedBy={this.props.sortedBy}
+          onSortPressed={this.props.onSortPressed}
           handleDeleteRows={(rows) => this.props.handleDeleteRows && this.props.handleDeleteRows(rows, columns)}
           handleDeleteCells={(cells) => this.props.handleDeleteCells && this.props.handleDeleteCells(cells, columns)}
           handlePasteRows={(rows) => this.props.handlePasteRows && this.props.handlePasteRows(rows, columns)}
