@@ -33,5 +33,4 @@
 
 @_exported import DBVapor
 
-@_exported import SwiftJS
-
+@_exported import ReactController
