@@ -1,6 +1,5 @@
 import _ from 'lodash';
-import React from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { createRef } from 'react';
 import CodeMirror from 'react-codemirror';
 
 export default class extends React.PureComponent {
@@ -8,18 +7,15 @@ export default class extends React.PureComponent {
 	constructor(props) {
 		super(props);
 
-		this.state = {
-			token: uuidv4(),
-		};
-
 		this._value = props.value;
+		this._ref = createRef();
 	}
 
 	componentDidUpdate() {
 		
 		if (this.props.value !== this._value) {
 			this._value = this.props.value;
-			this.setState({ token: uuidv4() });
+			this._ref.current.getCodeMirror().setValue(this._value);
 		}
 	}
 
@@ -34,10 +30,6 @@ export default class extends React.PureComponent {
 		if (onChange) {
 			onChange(newValue, change);
 		}
-
-		if (change.origin == 'paste' && _.isArray(change.removed) && change.removed.length == 1 && !_.isEmpty(change.removed[0])) {
-			this.setState({ token: uuidv4() });
-		}
 	}
 
 	render() {
@@ -49,8 +41,8 @@ export default class extends React.PureComponent {
 		} = this.props;
 
 		return <CodeMirror
+			ref={this._ref}
 			value={value}
-			key={this.state.token}
 			onChange={(newValue, change) => this.onChange(newValue, change)}
 			{...props} />;
 	}

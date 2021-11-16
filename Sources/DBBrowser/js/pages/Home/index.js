@@ -8,6 +8,7 @@ import { saveAs } from 'file-saver';
 
 import { Parser as SQLParser } from 'node-sql-parser';
 
+import Resizable from '../../components/Resizable';
 import CodeMirror from '../../components/CodeMirror';
 import Button from '../../components/Button';
 import SideMenu from './SideMenu';
@@ -20,69 +21,6 @@ import { withDatabase } from '../../utils/database';
 
 import _encode_data from '../../components/DataSheet/_encode_data';
 import csv_stringify from '../../components/DataSheet/csv_stringify';
-
-class Resizable extends React.PureComponent {
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      headerHeight: 0,
-    };
-  }
-
-  onHeaderLayout(e) {
-    this.setState({ headerHeight: e.nativeEvent.layout.height });
-  }
-
-  resize(e) {
-
-    const { onContentHeightChanged } = this.props;
-
-    if (onContentHeightChanged) {
-      const windowHeight = Dimensions.get('window').height;
-      const height = Math.max(0, windowHeight - e.nativeEvent.pageY - 0.5 * this.state.headerHeight);
-      onContentHeightChanged(height);
-    }
-  }
-
-  render() {
-    
-    const {
-      header,
-      headerContainerStyle,
-      contentHeight,
-      onContentHeightChanged,
-      children,
-    } = this.props;
-
-    return <React.Fragment>
-      <div style={{
-					userSelect: 'none',
-					MozUserSelect: 'none',
-					WebkitUserSelect: 'none',
-					msUserSelect: 'none',
-				}}>
-          <View
-            ref={(o) => this.headerRef = o}
-            onLayout={(e) => this.onHeaderLayout(e)}
-            onStartShouldSetResponder={(e) => e.target === this.headerRef}
-            onMoveShouldSetResponder={(e) => e.target === this.headerRef}
-            onStartShouldSetResponderCapture={() => false}
-            onMoveShouldSetResponderCapture={() => false}
-            onResponderTerminationRequest={() => false}
-            onResponderMove={(e) => this.resize(e)}
-            onResponderRelease={(e) => this.resize(e)}
-            style={headerContainerStyle}>
-            {header}
-          </View>
-      </div>
-      <View style={{ height: contentHeight }}>
-      {children}
-      </View>
-    </React.Fragment>
-  }
-}
 
 class Home extends React.Component {
 
