@@ -46,5 +46,4 @@ export default class extends React.PureComponent {
 			onChange={(newValue, change) => this.onChange(newValue, change)}
 			{...props} />;
 	}
-  }
-  
+}
