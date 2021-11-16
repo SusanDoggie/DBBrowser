@@ -30,8 +30,8 @@ export default function Resizable({ header, headerContainerStyle, contentHeight,
           onStartShouldSetResponderCapture={() => false}
           onMoveShouldSetResponderCapture={() => false}
           onResponderTerminationRequest={() => false}
-          onResponderMove={(e) => resize(e)}
-          onResponderRelease={(e) => resize(e)}
+          onResponderMove={resize}
+          onResponderRelease={resize}
           style={headerContainerStyle}>
           {header}
         </View>
