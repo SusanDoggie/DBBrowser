@@ -18,17 +18,15 @@ function Page({ children, author, description, keywords, meta, ...props }) {
   }} {...props} />;
 }
 
-export default class App extends React.Component {
-  render() {
-    return <SafeAreaProvider
-      initialMetrics={{
-        frame: { x: 0, y: 0, width: 0, height: 0 },
-        insets: { top: 0, left: 0, right: 0, bottom: 0 },
-      }}>
-      <Switch>
-      <Page exact path='/' title='Home'><Home /></Page>
-      <Page path='*' title='404 Not Found' statusCode={404}><NotFound /></Page>
-      </Switch>
-    </SafeAreaProvider>;
-  }
+export default function App() {
+  return <SafeAreaProvider
+    initialMetrics={{
+      frame: { x: 0, y: 0, width: 0, height: 0 },
+      insets: { top: 0, left: 0, right: 0, bottom: 0 },
+    }}>
+    <Switch>
+    <Page exact path='/' title='Home'><Home /></Page>
+    <Page path='*' title='404 Not Found' statusCode={404}><NotFound /></Page>
+    </Switch>
+  </SafeAreaProvider>;
 }

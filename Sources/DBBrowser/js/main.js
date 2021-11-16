@@ -16,11 +16,9 @@ import 'node-sql-parser/umd/postgresql.umd';
 
 import 'react-resizable/css/styles.css';
 
-function Main(props) {
+function Main() {
 	return <BrowserRouter><App /></BrowserRouter>;
 }
 
 AppRegistry.registerComponent('App', () => Main);
-AppRegistry.runApplication('App', {
-	rootTag: document.getElementById('root')
-});
+AppRegistry.runApplication('App', { rootTag: document.getElementById('root') });

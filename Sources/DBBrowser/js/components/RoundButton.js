@@ -3,16 +3,8 @@ import React from 'react';
 
 import Button from './Button';
 
-export default class RoundButton extends React.PureComponent {
-
-	render() {
-
-		const {
-			style,
-			...props
-		} = this.props;
-
-		return <Button
+export default function RoundButton({ style, ...props }) {
+	return <Button
 		style={{
 			minWidth: 96,
 			height: 32,
@@ -21,6 +13,4 @@ export default class RoundButton extends React.PureComponent {
 			...style
 		}}
 		{...props} />;
-	}
-  }
-  
+}

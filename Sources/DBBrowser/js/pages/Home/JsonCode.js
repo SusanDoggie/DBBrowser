@@ -3,25 +3,13 @@ import React from 'react';
 import { EJSON } from 'bson';
 import CodeMirror from '../../components/CodeMirror';
 
-export default class JsonCode extends React.PureComponent {
-
-  render() {
-
-    const {
-      value,
-      replacer,
-      space,
-      options,
-      ...props
-    } = this.props;
-
-    return <CodeMirror 
-      value={EJSON.stringify(value, replacer, space)}
-      options={{ 
-        readOnly: true,
-        mode: 'application/x-json',
-        ...options
-      }}
-      {...props} />
-  }
+export default function JsonCode({ value, replacer, space, options, ...props }) {
+  return <CodeMirror 
+    value={EJSON.stringify(value, replacer, space)}
+    options={{ 
+      readOnly: true,
+      mode: 'application/x-json',
+      ...options
+    }}
+    {...props} />
 }

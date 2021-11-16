@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React from 'react';
+import React, { useState } from 'react';
 import { Text, Pressable } from 'react-native';
 
 import AntDesign from 'react-native-vector-icons/dist/AntDesign';
@@ -36,71 +36,47 @@ const icons_map = {
     'Zocial': Zocial,
 }
 
-export default class Button extends React.PureComponent {
+export default function Button({ icon, iconStyle, iconHoverStyle, title, style, hoverStyle, titleStyle, titleHoverStyle, render, onHoverIn, onHoverOut, ...props }) {
 
-	constructor(props) {
-		super(props);
+	const [isHover, setIsHover] = useState(false);
 
-		this.state = {
-			isHover: false,
-		};
-	}
+	const _onHoverIn = onHoverIn ?? (() => setIsHover(true));
+	const _onHoverOut = onHoverOut ?? (() => setIsHover(false));
 
-	render() {
+	const _style = isHover ? { ...style, ...titleHoverStyle } : { ...style };
+	const _iconStyle = isHover ? { ...iconStyle, ...iconHoverStyle } : { ...iconStyle };
+	const _titleStyle = isHover ? { ...titleStyle, ...titleHoverStyle } : { ...titleStyle };
 
-		const {
-			icon,
-			iconStyle,
-			iconHoverStyle,
-			title,
-			style,
-			hoverStyle,
-			titleStyle,
-			titleHoverStyle,
-			render,
-			onHoverIn,
-			onHoverOut,
-			...props
-		} = this.props;
+	const Icon = icons_map[icon];
 
-		const _onHoverIn = onHoverIn ?? (() => this.setState({ isHover: true }));
-		const _onHoverOut = onHoverOut ?? (() => this.setState({ isHover: false }));
+	let content;
 
-		const _style = this.state.isHover ? { ...style, ...titleHoverStyle } : { ...style };
-		const _iconStyle = this.state.isHover ? { ...iconStyle, ...iconHoverStyle } : { ...iconStyle };
-		const _titleStyle = this.state.isHover ? { ...titleStyle, ...titleHoverStyle } : { ...titleStyle };
+	if (_.isNil(render)) {
 
-		const Icon = icons_map[icon];
-
-		let content;
-
-		if (_.isNil(render)) {
-
-			if (!_.isEmpty(Icon) && !_.isEmpty(title)) {
-				content = <Text style={{ color: 'white', ..._titleStyle }}><Icon {..._iconStyle} /> {title}</Text>;
-			} else if (!_.isEmpty(Icon)) {
-				content = <Icon color='white' {..._iconStyle} />;
-			} else if (!_.isEmpty(title)) {
-				content = <Text style={{ color: 'white', ..._titleStyle }}>{title}</Text>;
-			}
-
-		} else {
-			content = render({ isHover: this.state.isHover });
+		if (!_.isEmpty(Icon) && !_.isEmpty(title)) {
+			content = <Text style={{ color: 'white', ..._titleStyle }}><Icon {..._iconStyle} /> {title}</Text>;
+		} else if (!_.isEmpty(Icon)) {
+			content = <Icon color='white' {..._iconStyle} />;
+		} else if (!_.isEmpty(title)) {
+			content = <Text style={{ color: 'white', ..._titleStyle }}>{title}</Text>;
 		}
 
-		return <Pressable
-		onHoverIn={_onHoverIn}
-		onHoverOut={_onHoverOut}
-		style={{
-			padding: 8,
-			borderRadius: 4,
-			alignItems: 'center',
-			justifyContent: 'center',
-			backgroundColor: this.state.isHover ? '#1691E8' : '#2196F3',
-			..._style
-		}} {...props}>
-			{content}
-		</Pressable>;
+	} else {
+		content = render({ isHover });
 	}
-  }
+
+	return <Pressable
+	onHoverIn={_onHoverIn}
+	onHoverOut={_onHoverOut}
+	style={{
+		padding: 8,
+		borderRadius: 4,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: isHover ? '#1691E8' : '#2196F3',
+		..._style
+	}} {...props}>
+		{content}
+	</Pressable>;
+}
   

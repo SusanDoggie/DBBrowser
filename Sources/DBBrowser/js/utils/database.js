@@ -125,6 +125,10 @@ function createDatabase() {
 
 export const DatabaseContext = React.createContext(createDatabase());
 
+export function useDatabase() {
+	return React.useContext(DatabaseContext);
+}
+
 export function withDatabase(Component) {
-	return (props) => <Component database={React.useContext(DatabaseContext)} {...props} />;
+	return (props) => <Component database={useDatabase()} {...props} />;
 }
