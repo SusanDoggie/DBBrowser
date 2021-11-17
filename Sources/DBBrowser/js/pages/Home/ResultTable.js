@@ -1,70 +1,52 @@
 import _ from 'lodash';
-import React from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { View } from 'react-native';
-import { v4 as uuidv4 } from 'uuid';
 
 import JsonCode from './JsonCode';
 import DataSheet from '../../components/DataSheet';
 
-export default class ResultTable extends React.PureComponent {
+function ResultTable({ data, displayStyle, tableInfo, columnSettingKey, sortedBy, onSortPressed, handleDeleteRows, handleDeleteCells, handlePasteRows, handlePasteCells, ...props }, ref) {
 
-  constructor(props) {
-    super(props);
+  const datasheet = useRef();
 
-    this.state = {
-			token: uuidv4(),
-    };
+  useImperativeHandle(ref, () => ({
+    clearSelection: () => { datasheet.current?.clearSelection() }
+  }));
 
-    this.datasheet = React.createRef();
-  }
-
-  clearSelection() {
-    this.datasheet.current?.clearSelection();
-  }
-
-  renderBody() {
+  return <View {...props}>
+    <div style={{ flex: 1, overflow: 'scroll' }}>
+      {(() => {
     
-    if (!_.isArray(this.props.data)) {
-      return <JsonCode key={`jsoncode-${this.state.token}`} value={this.props.data} space={4} />;
-    }
+        if (!_.isArray(data)) {
+          return <JsonCode value={data} space={4} />;
+        }
 
-    switch (this.props.displayStyle) {
+        switch (displayStyle) {
 
-      case 'table':
+          case 'table':
 
-        const columns = this.props.data.reduce((result, x) => _.uniq(result.concat(Object.keys(x))), []);
-        const grid = this.props.data.map(x => columns.map(c => x[c]));
+            const columns = data.reduce((result, x) => _.uniq(result.concat(Object.keys(x))), []);
+            const grid = data.map(x => columns.map(c => x[c]));
 
-        return <DataSheet
-          key={`datasheet-${this.state.token}`}
-          ref={this.datasheet}
-          data={grid} 
-          tableInfo={this.props.tableInfo}
-          columns={columns}
-          columnSettingKey={this.props.columnSettingKey}
-          sortedBy={this.props.sortedBy}
-          onSortPressed={this.props.onSortPressed}
-          handleDeleteRows={(rows) => this.props.handleDeleteRows && this.props.handleDeleteRows(rows, columns)}
-          handleDeleteCells={(cells) => this.props.handleDeleteCells && this.props.handleDeleteCells(cells, columns)}
-          handlePasteRows={(rows) => this.props.handlePasteRows && this.props.handlePasteRows(rows, columns)}
-          handlePasteCells={(cells) => this.props.handlePasteCells && this.props.handlePasteCells(cells, columns)} />;
+            return <DataSheet
+              ref={datasheet}
+              data={grid} 
+              tableInfo={tableInfo}
+              columns={columns}
+              columnSettingKey={columnSettingKey}
+              sortedBy={sortedBy}
+              onSortPressed={onSortPressed}
+              handleDeleteRows={(rows) => handleDeleteRows && handleDeleteRows(rows, columns)}
+              handleDeleteCells={(cells) => handleDeleteCells && handleDeleteCells(cells, columns)}
+              handlePasteRows={(rows) => handlePasteRows && handlePasteRows(rows, columns)}
+              handlePasteCells={(cells) => handlePasteCells && handlePasteCells(cells, columns)} />;
 
-      case 'raw':
-        return <JsonCode key={`jsoncode-${this.state.token}`} value={this.props.data} space={4} />;
-    }
-  }
-
-  render() {
-    
-    const { 
-      data,
-      ...props
-    } = this.props;
-    
-    return <View {...props}>
-      <div style={{ flex: 1, overflow: 'scroll' }}>
-        {this.renderBody()}
-      </div>
-    </View>;
-  }
+          case 'raw':
+            return <JsonCode value={data} space={4} />;
+        }
+      })()}
+    </div>
+  </View>;
 }
+
+export default forwardRef(ResultTable);
