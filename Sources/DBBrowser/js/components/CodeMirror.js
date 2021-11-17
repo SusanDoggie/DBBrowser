@@ -1,49 +1,24 @@
 import _ from 'lodash';
-import React, { createRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import CodeMirror from 'react-codemirror';
 
-export default class extends React.PureComponent {
+export default function({ value, onChange, ...props }) {
 
-	constructor(props) {
-		super(props);
+	const ref = useRef();
 
-		this._value = props.value;
-		this._ref = createRef();
-	}
+	useEffect(() => {
 
-	componentDidUpdate() {
-		
-		if (this.props.value !== this._value) {
-			this._value = this.props.value;
-			this._ref.current.getCodeMirror().setValue(this._value);
+		const codeMirror = ref.current.getCodeMirror();
+
+		if (codeMirror.getValue() !== value) {
+			codeMirror.setValue(value);
 		}
-	}
 
-	onChange(newValue, change) {
+	}, [value]);
 
-		const {
-			onChange,
-		} = this.props;
-
-		this._value = newValue;
-
-		if (onChange) {
-			onChange(newValue, change);
-		}
-	}
-
-	render() {
-
-		const {
-			value,
-			onChange,
-			...props
-		} = this.props;
-
-		return <CodeMirror
-			ref={this._ref}
-			value={value}
-			onChange={(newValue, change) => this.onChange(newValue, change)}
-			{...props} />;
-	}
+	return <CodeMirror
+		ref={ref}
+		value={value}
+		onChange={(newValue, change) => onChange && onChange(newValue, change)}
+		{...props} />;
 }
