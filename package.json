@@ -4,12 +4,12 @@
   "repository": "https://github.com/SusanDoggie/DoggieDB",
   "scripts": {
     "clean": "rm -rf ./Sources/DBBrowser/Public/*/",
-    "prebuild": "npm run clean && webpack --mode production",
-    "prebuild:dev": "npm run clean && webpack --mode development",
+    "prebuild": "yarn clean && webpack --mode production",
+    "prebuild:dev": "yarn clean && webpack --mode development",
     "build": "swift build -c release",
     "build:dev": "swift build -c debug",
-    "prestart": "npm run clean && webpack --mode production",
-    "prestart:dev": "npm run clean && webpack --mode development",
+    "prestart": "yarn clean && webpack --mode production",
+    "prestart:dev": "yarn clean && webpack --mode development",
     "start": "swift run -c release",
     "start:dev": "swift run -c debug"
   },

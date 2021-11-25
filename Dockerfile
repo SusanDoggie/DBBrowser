@@ -2,8 +2,7 @@ FROM node AS bundler
 WORKDIR /worker
 COPY . .
 
-RUN yarn install
-RUN npx webpack --mode production
+RUN yarn install && yarn webpack --mode production
 
 FROM swift AS builder
 
