@@ -1,7 +1,6 @@
 /* eslint no-var: 0 */
 
 const path = require('path');
-const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
@@ -89,11 +88,6 @@ module.exports = (env, argv) => {
 		plugins: [ 
 			new NodePolyfillPlugin({
 				excludeAliases: ['url']
-			}),
-			new webpack.DefinePlugin({
-				'process.env': {
-					'NODE_ENV': IS_PRODUCTION ? '"production"' : 'undefined'
-				}
 			}),
 		],
 		module: {
