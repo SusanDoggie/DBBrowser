@@ -35,9 +35,9 @@ let package = Package(
         .executable(name: "DBBrowser", targets: ["DBBrowser"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.50.0"),
-        .package(url: "https://github.com/SusanDoggie/swift-vapor-react.git", from: "0.0.1"),
-        .package(url: "https://github.com/SusanDoggie/DoggieDB.git", from: "0.0.13"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.53.0"),
+        .package(url: "https://github.com/SusanDoggie/swift-vapor-react.git", from: "0.0.2"),
+        .package(url: "https://github.com/SusanDoggie/DoggieDB.git", from: "0.0.29"),
     ],
     targets: [
         .target(
