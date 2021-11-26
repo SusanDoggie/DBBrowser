@@ -25,8 +25,8 @@
 
 func routes(_ app: Application) throws {
     
-    let publicDirectory = Bundle.module.resourceURL!.appendingPathComponent("Public")
-    let serverScript = publicDirectory.appendingPathComponent("js").appendingPathComponent("server.js")
+    let privateDirectory = JSBundleURL.appendingPathComponent("private")
+    let serverScript = privateDirectory.appendingPathComponent("js").appendingPathComponent("server.js")
     
     try app.register(collection: ReactController(bundle: "/js/main.js", serverScript: serverScript))
     try app.register(collection: WebSocketController(logger: app.logger))

@@ -1,5 +1,5 @@
 //
-//  configure.swift
+//  Environment.swift
 //
 //  The MIT License
 //  Copyright (c) 2015 - 2021 Susan Cheng. All rights reserved.
@@ -23,11 +23,4 @@
 //  THE SOFTWARE.
 //
 
-public func configure(_ app: Application) throws {
-    
-    let publicDirectory = Bundle.module.resourceURL!.appendingPathComponent("Public")
-    app.middleware.use(FileMiddleware(publicDirectory: publicDirectory.path))
-    
-    ContentConfiguration.global.use(encoder: ExtendedJSONEncoder(), for: .json)
-    ContentConfiguration.global.use(decoder: ExtendedJSONDecoder(), for: .json)
-}
+let JSBundleURL = Bundle.module.resourceURL!.appendingPathComponent("dist")

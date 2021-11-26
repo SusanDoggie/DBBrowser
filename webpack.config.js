@@ -53,7 +53,7 @@ module.exports = (env, argv) => {
 			options: {
 				name: '[name].[contenthash].[ext]',
 				publicPath: '/images',
-				outputPath: 'images',
+				outputPath: 'public/images',
 			}
 		}
 	};
@@ -65,7 +65,7 @@ module.exports = (env, argv) => {
 			options: {
 				name: '[name].[contenthash].[ext]',
 				publicPath: '/fonts',
-				outputPath: 'fonts',
+				outputPath: 'public/fonts',
 			}
 		}
 	};
@@ -113,24 +113,23 @@ module.exports = (env, argv) => {
 		}
 	};
 	
-	return [
-		Object.assign({}, webpackConfiguration, {
-			entry: { 
-				main: './Sources/DBBrowser/js/main.js',
-				server: {
-					import: './Sources/DBBrowser/js/server.js',
-					library: {
-						name: 'render',
-						type: 'global',
-						export: 'default'
-					}
-				},
-			},
-			output: {
-				path: path.join(__dirname, 'Sources/DBBrowser/Public'),
-				publicPath: '/',
-				filename: 'js/[name].js'
+	return {
+		...webpackConfiguration,
+		entry: {
+			'public/js/main': './Sources/DBBrowser/js/main.js',
+			'private/js/server': {
+				import: './Sources/DBBrowser/js/server.js',
+				library: {
+					name: 'render',
+					type: 'global',
+					export: 'default'
+				}
 			}
-		})
-	];
+		},
+		output: {
+			path: path.join(__dirname, 'Sources/DBBrowser/dist'),
+			publicPath: '/',
+			filename: '[name].js'
+		}
+	};
 };

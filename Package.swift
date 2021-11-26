@@ -55,7 +55,7 @@ let package = Package(
                 "asserts",
             ],
             resources: [
-                .copy("Public"),
+                .copy("dist"),
             ],
             swiftSettings: [
                 .unsafeFlags(["-cross-module-optimization"], .when(configuration: .release))
