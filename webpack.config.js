@@ -90,14 +90,6 @@ module.exports = (env, argv) => {
 				excludeAliases: ['url']
 			}),
 		],
-		module: {
-		  rules: [
-			babelLoaderConfiguration,
-			cssLoaderConfiguration,
-			imageLoaderConfiguration,
-			fontLoaderConfiguration,
-		  ]
-		},
 		resolve: {
 			alias: {
 				'react-native$': 'react-native-web',
@@ -107,23 +99,54 @@ module.exports = (env, argv) => {
 		}
 	};
 	
-	return {
-		...webpackConfiguration,
-		entry: {
-			'public/js/main': './Sources/DBBrowser/js/main.js',
-			'private/js/server': {
-				import: './Sources/DBBrowser/js/server.js',
-				library: {
-					name: 'render',
-					type: 'global',
-					export: 'default'
-				}
+	return [
+		{
+			...webpackConfiguration,
+			entry: {
+				'public/js/main': './Sources/DBBrowser/js/main.js',
+			},
+			module: {
+			  rules: [
+				babelLoaderConfiguration,
+				cssLoaderConfiguration,
+				imageLoaderConfiguration,
+				fontLoaderConfiguration,
+			  ]
+			},
+			output: {
+				path: path.join(__dirname, 'Sources/DBBrowser/dist'),
+				publicPath: '/',
+				filename: '[name].js'
 			}
 		},
-		output: {
-			path: path.join(__dirname, 'Sources/DBBrowser/dist'),
-			publicPath: '/',
-			filename: '[name].js'
+		{
+			...webpackConfiguration,
+			entry: {
+				'private/js/server': {
+					import: './Sources/DBBrowser/js/server.js',
+					library: {
+						name: 'render',
+						type: 'global',
+						export: 'default'
+					}
+				}
+			},
+			module: {
+			  rules: [
+				babelLoaderConfiguration,
+				{
+				  test: /\.css$/,
+				  use: 'css-loader'
+				},
+				imageLoaderConfiguration,
+				fontLoaderConfiguration,
+			  ]
+			},
+			output: {
+				path: path.join(__dirname, 'Sources/DBBrowser/dist'),
+				publicPath: '/',
+				filename: '[name].js'
+			}
 		}
-	};
+	];
 };

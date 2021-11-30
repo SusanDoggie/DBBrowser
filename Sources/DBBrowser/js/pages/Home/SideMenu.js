@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import React from 'react';
 import { View, Text, TouchableWithoutFeedback } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/dist/MaterialCommunityIcons';
+import { MaterialCommunityIcons } from 'doggie-react-ui/Icons';
 import { v4 as uuidv4 } from 'uuid';
 import { URL } from 'url';
 

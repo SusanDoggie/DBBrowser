@@ -26,7 +26,7 @@
 import _ from 'lodash';
 import React from 'react';
 import { EJSON } from 'bson';
-import CodeMirror from '../../components/CodeMirror';
+import CodeMirror from 'doggie-react-ui/CodeMirror';
 
 export default function JsonCode({ value, replacer, space, options, ...props }) {
   return <CodeMirror 

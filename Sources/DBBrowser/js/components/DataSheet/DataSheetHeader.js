@@ -26,8 +26,7 @@
 import _ from 'lodash';
 import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
-import AntDesign from 'react-native-vector-icons/dist/AntDesign';
-import Entypo from 'react-native-vector-icons/dist/Entypo';
+import { AntDesign, Entypo } from 'doggie-react-ui/Icons';
 import { ResizableBox } from 'react-resizable';
 import storage from '../../utils/storage';
 

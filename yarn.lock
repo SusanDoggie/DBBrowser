@@ -1045,6 +1045,15 @@ diffie-hellman@^5.0.0:
     miller-rabin "^4.0.0"
     randombytes "^2.0.0"
 
+doggie-react-ui@SusanDoggie/doggie-react-ui:
+  version "1.0.0"
+  resolved "https://codeload.github.com/SusanDoggie/doggie-react-ui/tar.gz/e917b82c6864aba8641a20524af69590f536b36a"
+  dependencies:
+    lodash "^4.17.21"
+    react "^17.0.2"
+    react-codemirror "^1.0.0"
+    react-native-vector-icons "^9.0.0"
+
 domain-browser@^4.19.0:
   version "4.22.0"
   resolved "https://registry.yarnpkg.com/domain-browser/-/domain-browser-4.22.0.tgz#6ddd34220ec281f9a65d3386d267ddd35c491f9f"
@@ -2288,7 +2297,7 @@ react-router@5.2.1, react-router@^5.2.0:
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
 
-react@^17.0.1:
+react@^17.0.1, react@^17.0.2:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react/-/react-17.0.2.tgz#d0b5cc516d29eb3eee383f75b62864cfb6800037"
   integrity sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==

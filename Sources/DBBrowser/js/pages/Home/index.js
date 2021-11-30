@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 import React from 'react';
-import { View, ScrollView, Text, Dimensions } from 'react-native';
+import { View, ScrollView, Text } from 'react-native';
 import { withRouter } from 'react-router';
 import { EJSON } from 'bson';
 import { URL } from 'url';
@@ -34,7 +34,7 @@ import { saveAs } from 'file-saver';
 import { Parser as SQLParser } from 'node-sql-parser';
 
 import Resizable from '../../components/Resizable';
-import CodeMirror from '../../components/CodeMirror';
+import CodeMirror from 'doggie-react-ui/CodeMirror';
 import Button from '../../components/Button';
 import SideMenu from './SideMenu';
 import LoginPanel from './LoginPanel';
