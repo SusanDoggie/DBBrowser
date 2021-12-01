@@ -1,0 +1,30 @@
+
+# ignore .git and .cache folders
+.git
+.gitignore
+.gitattributes
+.github
+.cache
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Swift Package Manager
+Package.pins
+Package.resolved
+.build
+.swiftpm
+
+# build products
+dist
+
+## Node
+node_modules
+
+# macOS
+.DS_Store
+
+# Visual Studio Code
+.vscode

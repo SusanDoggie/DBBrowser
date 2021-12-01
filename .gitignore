@@ -69,5 +69,8 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
+# build products
+dist
+
 ## Node
 node_modules/
