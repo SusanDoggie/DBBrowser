@@ -41,6 +41,16 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "Client",
+            exclude: [
+                "asserts",
+                "js",
+            ],
+            resources: [
+                .copy("dist"),
+            ]
+        ),
+        .target(
             name: "DBBrowser",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
@@ -49,13 +59,7 @@ let package = Package(
                 .product(name: "DBMongo", package: "DoggieDB"),
                 .product(name: "DBMySQL", package: "DoggieDB"),
                 .product(name: "DBVapor", package: "DoggieDB"),
-            ],
-            exclude: [
-                "js",
-                "asserts",
-            ],
-            resources: [
-                .copy("dist"),
+                .target(name: "Client"),
             ],
             swiftSettings: [
                 .unsafeFlags(["-cross-module-optimization"], .when(configuration: .release))

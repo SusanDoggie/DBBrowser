@@ -103,7 +103,7 @@ module.exports = (env, argv) => {
 		{
 			...webpackConfiguration,
 			entry: {
-				'public/js/main': './Sources/DBBrowser/js/main.js',
+				'public/js/main': './Sources/Client/js/main.js',
 			},
 			module: {
 			  rules: [
@@ -114,7 +114,7 @@ module.exports = (env, argv) => {
 			  ]
 			},
 			output: {
-				path: path.join(__dirname, 'Sources/DBBrowser/dist'),
+				path: path.join(__dirname, 'Sources/Client/dist'),
 				publicPath: '/',
 				filename: '[name].js'
 			}
@@ -123,7 +123,7 @@ module.exports = (env, argv) => {
 			...webpackConfiguration,
 			entry: {
 				'private/js/server': {
-					import: './Sources/DBBrowser/js/server.js',
+					import: './Sources/Client/js/server.js',
 					library: {
 						name: 'render',
 						type: 'global',
@@ -143,7 +143,7 @@ module.exports = (env, argv) => {
 			  ]
 			},
 			output: {
-				path: path.join(__dirname, 'Sources/DBBrowser/dist'),
+				path: path.join(__dirname, 'Sources/Client/dist'),
 				publicPath: '/',
 				filename: '[name].js'
 			}
