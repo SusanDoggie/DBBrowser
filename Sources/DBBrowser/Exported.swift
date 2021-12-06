@@ -27,10 +27,6 @@
 
 @_exported import DoggieDB
 
-@_exported import DBMongo
-
-@_exported import DBMySQL
-
 @_exported import DBVapor
 
 @_exported import ReactController

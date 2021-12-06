@@ -56,8 +56,6 @@ let package = Package(
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "ReactController", package: "swift-vapor-react"),
                 .product(name: "DoggieDB", package: "DoggieDB"),
-                .product(name: "DBMongo", package: "DoggieDB"),
-                .product(name: "DBMySQL", package: "DoggieDB"),
                 .product(name: "DBVapor", package: "DoggieDB"),
                 .target(name: "Client"),
             ],

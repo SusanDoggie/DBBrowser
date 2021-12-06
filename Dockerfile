@@ -55,7 +55,6 @@ FROM swift:slim
 
 RUN apt-get update \
  && apt-get install -y libjavascriptcoregtk-4.0-bin \
- && apt-get install -y libmongoc-1.0-0 libssl-dev \
  && rm -r /var/lib/apt/lists/*
 
 WORKDIR /worker/.build/x86_64-unknown-linux-gnu
