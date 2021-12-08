@@ -53,8 +53,8 @@ module.exports = (env, argv) => {
 			loader: 'file-loader',
 			options: {
 				name: '[name].[contenthash].[ext]',
-				publicPath: '/images',
-				outputPath: '/images',
+				publicPath: 'images',
+				outputPath: '../images',
 			}
 		}
 	};
@@ -65,8 +65,8 @@ module.exports = (env, argv) => {
 			loader: 'file-loader',
 			options: {
 				name: '[name].[contenthash].[ext]',
-				publicPath: '/fonts',
-				outputPath: '/fonts',
+				publicPath: 'fonts',
+				outputPath: '../fonts',
 			}
 		}
 	};
@@ -101,8 +101,8 @@ module.exports = (env, argv) => {
 			extensions: ['.web.js', '.js']
 		},
 		output: {
-			path: path.join(__dirname, 'Sources/Client/dist/public'),
-			publicPath: '/',
+			path: path.join(__dirname, 'Sources/Client/dist/public/js'),
+			publicPath: 'js/',
 			filename: '[name].js'
 		}
 	};
@@ -111,7 +111,7 @@ module.exports = (env, argv) => {
 		{
 			...webpackConfiguration,
 			entry: {
-				'js/main': './Sources/Client/js/main.js',
+				main: './Sources/Client/js/main.js',
 			},
 			module: {
 				rules: [
@@ -125,7 +125,7 @@ module.exports = (env, argv) => {
 		{
 			...webpackConfiguration,
 			entry: {
-				'../private/js/server': {
+				'../../private/js/server': {
 					import: './Sources/Client/js/server.js',
 					library: {
 						name: 'render',
