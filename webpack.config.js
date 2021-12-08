@@ -3,6 +3,7 @@
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
+const LoadablePlugin = require('@loadable/webpack-plugin');
 
 module.exports = (env, argv) => {
 	
@@ -27,6 +28,7 @@ module.exports = (env, argv) => {
 				'@babel/plugin-syntax-dynamic-import',
 				'@babel/plugin-proposal-class-properties',
 				'react-native-reanimated/plugin',
+				'@loadable/babel-plugin',
 			]
 		  },
 		}
@@ -52,7 +54,7 @@ module.exports = (env, argv) => {
 			options: {
 				name: '[name].[contenthash].[ext]',
 				publicPath: '/images',
-				outputPath: 'public/images',
+				outputPath: '/images',
 			}
 		}
 	};
@@ -64,7 +66,7 @@ module.exports = (env, argv) => {
 			options: {
 				name: '[name].[contenthash].[ext]',
 				publicPath: '/fonts',
-				outputPath: 'public/fonts',
+				outputPath: '/fonts',
 			}
 		}
 	};
@@ -85,7 +87,8 @@ module.exports = (env, argv) => {
 				}),
 			],
 		},
-		plugins: [ 
+		plugins: [
+			new LoadablePlugin({ outputAsset: false }),
 			new NodePolyfillPlugin({
 				excludeAliases: ['url']
 			}),
@@ -96,6 +99,11 @@ module.exports = (env, argv) => {
 				'url': 'whatwg-url',
 			},
 			extensions: ['.web.js', '.js']
+		},
+		output: {
+			path: path.join(__dirname, 'Sources/Client/dist/public'),
+			publicPath: '/',
+			filename: '[name].js'
 		}
 	};
 	
@@ -103,26 +111,21 @@ module.exports = (env, argv) => {
 		{
 			...webpackConfiguration,
 			entry: {
-				'public/js/main': './Sources/Client/js/main.js',
+				'js/main': './Sources/Client/js/main.js',
 			},
 			module: {
-			  rules: [
-				babelLoaderConfiguration,
-				cssLoaderConfiguration,
-				imageLoaderConfiguration,
-				fontLoaderConfiguration,
-			  ]
-			},
-			output: {
-				path: path.join(__dirname, 'Sources/Client/dist'),
-				publicPath: '/',
-				filename: '[name].js'
+				rules: [
+					babelLoaderConfiguration,
+					cssLoaderConfiguration,
+					imageLoaderConfiguration,
+					fontLoaderConfiguration,
+				]
 			}
 		},
 		{
 			...webpackConfiguration,
 			entry: {
-				'private/js/server': {
+				'../private/js/server': {
 					import: './Sources/Client/js/server.js',
 					library: {
 						name: 'render',
@@ -132,20 +135,15 @@ module.exports = (env, argv) => {
 				}
 			},
 			module: {
-			  rules: [
-				babelLoaderConfiguration,
-				{
-				  test: /\.css$/,
-				  use: 'css-loader'
-				},
-				imageLoaderConfiguration,
-				fontLoaderConfiguration,
-			  ]
-			},
-			output: {
-				path: path.join(__dirname, 'Sources/Client/dist'),
-				publicPath: '/',
-				filename: '[name].js'
+				rules: [
+					babelLoaderConfiguration,
+					{
+						test: /\.css$/i,
+						use: 'css-loader',
+					},
+					imageLoaderConfiguration,
+					fontLoaderConfiguration,
+				]
 			}
 		}
 	];
