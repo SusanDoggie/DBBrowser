@@ -23,8 +23,6 @@
 //  THE SOFTWARE.
 //
 
-global.self = global;
-
 import 'text-encoding/lib/encoding-indexes';
 import 'text-encoding/lib/encoding';
 
