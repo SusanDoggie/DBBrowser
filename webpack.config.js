@@ -111,7 +111,10 @@ module.exports = (env, argv) => {
 		{
 			...webpackConfiguration,
 			entry: {
-				main: './Sources/Client/js/main.js',
+				main: [
+					'whatwg-fetch',
+					'./Sources/Client/js/main.js',
+				],
 			},
 			module: {
 				rules: [
