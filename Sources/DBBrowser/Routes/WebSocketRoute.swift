@@ -1,5 +1,5 @@
 //
-//  WebSocketController.swift
+//  WebSocketRoute.swift
 //
 //  The MIT License
 //  Copyright (c) 2015 - 2021 Susan Cheng. All rights reserved.
@@ -23,7 +23,7 @@
 //  THE SOFTWARE.
 //
 
-public class WebSocketController: RouteCollection {
+public class WebSocketRoute: RouteCollection {
     
     public var logger: Logger
     
@@ -66,7 +66,7 @@ public class WebSocketController: RouteCollection {
     }
 }
 
-extension WebSocketController {
+extension WebSocketRoute {
     
     enum DatabaseType {
         
@@ -85,14 +85,14 @@ extension WebSocketController {
     }
 }
 
-extension WebSocketController {
+extension WebSocketRoute {
     
     private func send(_ ws: WebSocket, _ message: BSONDocument) {
         try? ws.send(raw: encoder.encode(message), opcode: .text)
     }
 }
 
-extension WebSocketController {
+extension WebSocketRoute {
     
     private func onMessage(_ ws: WebSocket, _ session: Session, _ message: BSON) {
         
