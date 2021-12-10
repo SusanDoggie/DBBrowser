@@ -10,8 +10,8 @@
     "build:dev": "swift build -c debug",
     "prestart": "yarn clean && webpack --mode production",
     "prestart:dev": "yarn clean && webpack --mode development",
-    "start": "swift run -c release",
-    "start:dev": "swift run -c debug"
+    "start": "swift run -c release DBBrowser serve",
+    "start:dev": "swift run -c debug DBBrowser serve"
   },
   "dependencies": {
     "@babel/plugin-transform-runtime": "^7.13.10",
