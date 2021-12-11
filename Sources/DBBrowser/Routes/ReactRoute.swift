@@ -33,10 +33,30 @@ public class ReactRoute: RouteCollection {
 
 extension ReactRoute {
     
+    private class CookiesMiddleware: Middleware {
+        
+        func respond(to request: Request, chainingTo next: Responder) -> EventLoopFuture<Response> {
+            
+            return next.respond(to: request).map { response in
+                
+                if let preferredLocale = request.cookies["PREFERRED_LOCALE"]?.string {
+                    
+                    var cookies = response.headers.setCookie ?? HTTPCookies()
+                    
+                    cookies["PREFERRED_LOCALE"] = HTTPCookies.Value(string: preferredLocale, maxAge: 31536000)
+                    
+                    response.headers.setCookie = cookies
+                }
+                
+                return response
+            }
+        }
+    }
+    
     private static func setupReact(routes: RoutesBuilder) throws {
         
         let publicDirectory = JSBundleURL.appendingPathComponent("public")
-        let routes = routes.grouped(FileMiddleware(publicDirectory: publicDirectory.path))
+        let routes = routes.grouped(CookiesMiddleware(), FileMiddleware(publicDirectory: publicDirectory.path))
         
         let privateDirectory = JSBundleURL.appendingPathComponent("private")
         let serverScript = privateDirectory.appendingPathComponent("js").appendingPathComponent("server.js")
