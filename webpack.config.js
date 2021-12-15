@@ -147,6 +147,9 @@ module.exports = (env, argv) => {
 					imageLoaderConfiguration,
 					fontLoaderConfiguration,
 				]
+			},
+			performance: {
+			  hints: false,
 			}
 		}
 	];
