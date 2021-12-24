@@ -285,7 +285,7 @@ class Home extends React.Component {
       }
     }
 
-    return Object.entries(columns).map(x => { return { name: x[0], type: x[1] ?? 'any' } });
+    return Object.entries(columns).map(x => ({ name: x[0], type: x[1] ?? 'any' }));
   }
 
   async runCommand(command) {
