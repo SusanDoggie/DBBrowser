@@ -17,6 +17,9 @@ Package.resolved
 .build
 .swiftpm
 
+# Visual Studio Code
+.vscode/
+
 # build products
 dist
 
