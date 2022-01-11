@@ -36,7 +36,7 @@ export default function Button({ icon, iconStyle, iconHoverStyle, title, style, 
 	const _onHoverIn = onHoverIn ?? (() => setIsHover(true));
 	const _onHoverOut = onHoverOut ?? (() => setIsHover(false));
 
-	const _style = isHover ? { ...style, ...titleHoverStyle } : { ...style };
+	const _style = isHover ? { ...style, ...hoverStyle } : { ...style };
 	const _iconStyle = isHover ? { ...iconStyle, ...iconHoverStyle } : { ...iconStyle };
 	const _titleStyle = isHover ? { ...titleStyle, ...titleHoverStyle } : { ...titleStyle };
 
