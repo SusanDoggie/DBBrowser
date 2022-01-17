@@ -18,7 +18,7 @@
     "@loadable/component": "^5.14.1",
     "bson": "^4.6.0",
     "codemirror": "^5.65.0",
-    "doggie-react-ui": "SusanDoggie/doggie-react-ui",
+    "doggie-react-ui": "^1.0.0",
     "file-saver": "^2.0.5",
     "lodash": "^4.17.21",
     "node-sql-parser": "^4.0.0",
